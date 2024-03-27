@@ -148,7 +148,7 @@ const DashboardTable = ({ data, teams = [], getUsers = null }) => {
       <BootstrapDialog
         onClose={() => setUpdateModel(null)}
         aria-labelledby='customized-dialog-title'
-        open={updateModel}
+        open={!!updateModel}
       >
         <DialogTitle sx={{ m: 0, p: 2 }} id='customized-dialog-title'>
           Update User

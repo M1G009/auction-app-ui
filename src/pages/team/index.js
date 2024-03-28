@@ -34,21 +34,21 @@ const Teams = () => {
           return (
             <Grid item key={inx} xs={12} md={3} lg={4}>
               <Card>
-                {/* <CardMedia
+                <CardMedia
                   component={'img'}
                   sx={{ width: '100%', maxWidth: '100%' }}
                   image={`${process.env.API_BASE_URL}/team/${el?.logo}`}
                   title={el?.name}
-                /> */}
+                />
                 <CardContent>
                   <Typography gutterBottom variant='h5' component='div' sx={{ color: '#804bdf' }}>
                     <b>{el?.name}</b>
                   </Typography>
                   <Typography gutterBottom variant='h6' component='div'>
-                    <b>Owner:</b> {el?.captain?.name}
+                    <b>Owner:</b> {el?.owner?.name}
                   </Typography>
                   <Typography gutterBottom variant='h6' component='div'>
-                    <b>Captain:</b> {el?.owner?.name}
+                    <b>Captain:</b> {el?.captain?.name}
                   </Typography>
                 </CardContent>
               </Card>

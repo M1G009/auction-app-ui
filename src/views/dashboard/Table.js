@@ -70,20 +70,23 @@ const DashboardTable = ({ data, teams = [], getUsers = null }) => {
   }
 
   const updateHandler = async () => {
-    if (updateModel && updateModel.team._id && updateModel.type) {
-      // console.log(updateModel)
-      let checkToken = localStorage.getItem('authorization')
-      await axios.patch(
-        `${process.env.API_BASE_URL}/api/v1/user/${updateModel._id}`,
-        { type: updateModel.type, team: updateModel.team._id },
-        {
-          headers: {
-            authorization: checkToken
+    try {
+      if ((updateModel && updateModel?.team?._id) || updateModel.type) {
+        let checkToken = localStorage.getItem('authorization')
+        await axios.patch(
+          `${process.env.API_BASE_URL}/api/v1/user/${updateModel._id}`,
+          { type: updateModel.type, team: updateModel?.team?._id || undefined },
+          {
+            headers: {
+              authorization: checkToken
+            }
           }
-        }
-      )
-      getUsers()
-      setUpdateModel(null)
+        )
+        getUsers()
+        setUpdateModel(null)
+      }
+    } catch (error) {
+      console.log(error)
     }
   }
 
@@ -115,7 +118,11 @@ const DashboardTable = ({ data, teams = [], getUsers = null }) => {
                 <TableCell>{index + 1}</TableCell>
                 <TableCell sx={{ py: theme => `${theme.spacing(0.5)} !important` }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Avatar alt={row.name} src={`${process.env.API_BASE_URL}/player/${row.photo}`} />
+                    <Avatar
+                      alt={row.name}
+                      src={`${process.env.API_BASE_URL}/player/${row.photo}`}
+                      sx={{ width: 70, height: 70 }}
+                    />
                     <Typography sx={{ fontWeight: 500, fontSize: '0.875rem !important', ml: 1 }}>{row.name}</Typography>
                   </Box>
                 </TableCell>

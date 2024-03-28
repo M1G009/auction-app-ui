@@ -15,7 +15,6 @@ import {
   Box,
   Grid,
   styled,
-  Card,
   DialogTitle,
   DialogActions
 } from '@mui/material'
@@ -29,7 +28,7 @@ import GavelIcon from '@mui/icons-material/Gavel'
 // ** Demo Components Imports
 import Table from 'src/views/dashboard/Table'
 
-const colorCode = ['#454fa2', '#ff02a5', '#00ff61', '#cbff00', '#ff5817', '#14c2ff', '#ff5f5f', '#b78080']
+const colorCode = ['#1c3664', '#3860a8', '#e15a23', '#00374a', '#0e2242', '#373535', '#ffb92e', '#b6802b']
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -49,6 +48,14 @@ const TabName = styled('span')(({ theme }) => ({
   fontSize: '0.875rem',
   marginLeft: theme.spacing(2.4)
 }))
+
+const noOfTeamPlayer = (players, team) => {
+  if (players && players.length && team && team._id) {
+    return players.filter(el => el?.team?._id == team._id)?.length
+  }
+
+  return 0
+}
 
 function sumOfBid(data) {
   let sum = 0
@@ -77,7 +84,7 @@ const Dashboard = () => {
   useEffect(() => {
     const token = localStorage.getItem('authorization') || ''
 
-    socket = io('http://localhost:3005', {
+    socket = io(process.env.API_BASE_URL, {
       transports: ['websocket'],
       query: {
         Authorization: token
@@ -189,7 +196,9 @@ const Dashboard = () => {
 
   return (
     <Grid container spacing={6}>
-      <h1>SPL - Saringpur Premier League</h1>
+      <Grid item xs={12}>
+        <h1>SPL - Saringpur Premier League</h1>
+      </Grid>
       {/* <Grid item xs={12}>
         <TabContext value={currentType}>
           <TabList
@@ -276,29 +285,33 @@ const Dashboard = () => {
         <Grid container spacing={6} justifyContent={'center'} sx={{ p: 2 }}>
           {isValidAdmin && (
             <Grid item xs={12} md={12}>
-              <Grid container spacing={6} justifyContent={'center'}>
+              <Grid container spacing={3} justifyContent={'center'}>
                 {allTeams.map((el, inx) => {
                   return (
                     <Grid item xs={12} md={3} key={inx}>
-                      <Card
+                      <Button
+                        variant='contained'
+                        color='success'
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
                           height: '100%',
+                          width: '100%',
                           p: 1,
                           backgroundColor: colorCode[inx],
                           cursor: 'pointer'
                         }}
+                        disabled={noOfTeamPlayer(playersData, el) == 12}
                         onClick={() => raiseBid(el)}
                       >
-                        <Typography component='div' variant='h5' sx={{ color: '#fff', p: 2 }}>
-                          {el?.name}
+                        <Typography component='div' variant='h6' sx={{ color: '#fff', p: 2, fontSize: '22px' }}>
+                          {el?.name} ({noOfTeamPlayer(playersData, el) || 0})
                           <br />
                           <Typography variant='span' sx={{ color: '#fff', p: 2, fontSize: 16 }}>
                             {el?.totalpurse} Lakh remains
                           </Typography>
                         </Typography>
-                      </Card>
+                      </Button>
                     </Grid>
                   )
                 })}

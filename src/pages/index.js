@@ -1,5 +1,7 @@
 // ** React and Socket.io Imports
 import React, { forwardRef, useEffect, useState } from 'react'
+import IconButton from '@mui/material/IconButton'
+import CloseIcon from '@mui/icons-material/Close'
 
 import io from 'socket.io-client'
 
@@ -24,6 +26,7 @@ import MuiTab from '@mui/material/Tab'
 
 import ReplayIcon from '@mui/icons-material/Replay'
 import GavelIcon from '@mui/icons-material/Gavel'
+import DoNotDisturbAltIcon from '@mui/icons-material/DoNotDisturbAlt'
 
 // ** Demo Components Imports
 import Table from 'src/views/dashboard/Table'
@@ -74,6 +77,7 @@ const Dashboard = () => {
   const [playersData, setPlayersData] = useState([])
   const [isValidAdmin, setIsValidAdmin] = useState(false)
   const [undoDialog, setUndoDialog] = useState(false)
+  const [unSoldDialog, setunSoldDialog] = useState(false)
   const [sellDialog, setSellDialog] = useState(false)
   const [currentPlayerBid, setCurrentPlayerBid] = useState(null)
 
@@ -91,43 +95,22 @@ const Dashboard = () => {
       }
     })
 
-    socket.on('playersData', ({ players, team, isAdmin, currentPlayer, bidProgress }) => {
-      if (players && players.length) {
-        setPlayersData(players)
-      }
-      if (team && team.length) {
-        setAllTeams(team)
-      }
-      if (currentPlayer) {
-        setCurrentPlayerBid(currentPlayer)
-      } else {
-        setCurrentPlayerBid(null)
-      }
-      if (bidProgress && bidProgress.length) {
-        setBidProgress(bidProgress)
-      } else {
-        setBidProgress([])
-      }
+    socket.on('isAdmin', ({ isAdmin }) => {
       setIsValidAdmin(isAdmin)
     })
 
-    socket.on('nextPlayerData', ({ players, team, currentPlayer, bidProgress }) => {
-      if (players && players.length) {
-        setPlayersData(players)
-      }
-      if (team && team.length) {
-        setAllTeams(team)
-      }
-      if (currentPlayer) {
-        setCurrentPlayerBid(currentPlayer)
-      } else {
-        setCurrentPlayerBid(null)
-      }
-      if (bidProgress && bidProgress.length) {
-        setBidProgress(bidProgress)
-      } else {
-        setBidProgress([])
-      }
+    socket.on('playersData', ({ players, team, currentPlayer, bidProgress }) => {
+      setPlayersData(players)
+      setAllTeams(team)
+      setCurrentPlayerBid(currentPlayer)
+      setBidProgress(bidProgress)
+    })
+
+    socket.on('newBid', ({ players, team, currentPlayer, bidProgress }) => {
+      setPlayersData(players)
+      setAllTeams(team)
+      setCurrentPlayerBid(currentPlayer)
+      setBidProgress(bidProgress)
     })
 
     socket.on('currentPlayerBid', ({ currentPlayer }) => {
@@ -137,15 +120,15 @@ const Dashboard = () => {
     })
 
     socket.on('bidProgress', ({ bidProgress }) => {
-      if (bidProgress && bidProgress.length) {
-        setBidProgress(bidProgress)
-      } else {
-        setBidProgress([])
-      }
+      setBidProgress(bidProgress)
     })
 
     socket.on('insufficientPurse', ({ team }) => {
       alert(`${team.name} not have sufficient balance`)
+    })
+
+    socket.on('listcomplete', ({}) => {
+      setCurrentPlayerBid(null)
     })
 
     return () => {
@@ -161,7 +144,7 @@ const Dashboard = () => {
   }
 
   const bidStartHandler = () => {
-    socket.emit('startbid', { list: currentType })
+    socket.emit('newBid', {})
   }
 
   const raiseBid = team => {
@@ -177,6 +160,14 @@ const Dashboard = () => {
     socket.emit('sellBid', {})
     setSellDialog(false)
   }
+
+  const unSoldBid = () => {
+    socket.emit('unSoldBid', {})
+    setSellDialog(false)
+    setunSoldDialog(false)
+  }
+
+  // db.users.updateMany({type: "C"}, {$set: {type: "A"}})
 
   let data =
     playersData
@@ -196,10 +187,10 @@ const Dashboard = () => {
 
   return (
     <Grid container spacing={6}>
-      <Grid item xs={12}>
-        <h1>SPL - Saringpur Premier League</h1>
-      </Grid>
       {/* <Grid item xs={12}>
+        <h1>SPL - Saringpur Premier League</h1>
+      </Grid> */}
+      <Grid item xs={12}>
         <TabContext value={currentType}>
           <TabList
             onChange={handleChange}
@@ -207,26 +198,26 @@ const Dashboard = () => {
             sx={{ borderBottom: theme => `1px solid ${theme.palette.divider}` }}
           >
             <Tab
+              value='Owner'
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <TabName>Owner</TabName>
+                </Box>
+              }
+            />
+            <Tab
+              value='Captain'
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <TabName>Captain</TabName>
+                </Box>
+              }
+            />
+            <Tab
               value='A'
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <TabName>List A</TabName>
-                </Box>
-              }
-            />
-            <Tab
-              value='B'
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <TabName>List B</TabName>
-                </Box>
-              }
-            />
-            <Tab
-              value='C'
-              label={
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <TabName>List C</TabName>
+                  <TabName>Players</TabName>
                 </Box>
               }
             />
@@ -249,9 +240,7 @@ const Dashboard = () => {
                   Start Auction
                 </Button>
               ) : (
-                <Button variant='contained' color='error'>
-                  List {currentType} Completed
-                </Button>
+                ''
               )}
             </Box>
           </Box>
@@ -260,6 +249,16 @@ const Dashboard = () => {
       </Grid>
       <Dialog fullScreen open={!!currentPlayerBid} TransitionComponent={Transition}>
         <AppBar sx={{ position: 'relative', p: 2 }}>
+          <IconButton
+            edge='start'
+            color='inherit'
+            onClick={() => setCurrentPlayerBid(null)}
+            aria-label='close'
+            sx={{ position: 'absolute', right: 0, top: 0, color: '#000' }}
+          >
+            <CloseIcon />
+          </IconButton>
+
           <Typography
             sx={{ flex: 1, color: '#fff', textAlign: 'center', textDecoration: 'underline' }}
             variant='h3'
@@ -278,6 +277,11 @@ const Dashboard = () => {
             {isValidAdmin && !!bidProgress.length && (
               <Button variant='contained' color='success' sx={{ ml: 3 }} onClick={() => setSellDialog(true)}>
                 <GavelIcon />
+              </Button>
+            )}
+            {isValidAdmin && (
+              <Button variant='contained' color='error' sx={{ ml: 3 }} onClick={() => setunSoldDialog(true)}>
+                <DoNotDisturbAltIcon />
               </Button>
             )}
           </Typography>
@@ -367,6 +371,21 @@ const Dashboard = () => {
       </Dialog>
 
       <Dialog
+        open={unSoldDialog}
+        onClose={() => setunSoldDialog(false)}
+        aria-labelledby='alert-dialog-title'
+        aria-describedby='alert-dialog-description'
+      >
+        <DialogTitle id='alert-dialog-title'>{'Are you want to unsold this player?'}</DialogTitle>
+        <DialogActions>
+          <Button onClick={() => setunSoldDialog(false)}>No</Button>
+          <Button onClick={() => unSoldBid()} autoFocus>
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
         open={sellDialog}
         onClose={() => setSellDialog(false)}
         aria-labelledby='alert-dialog-title'
@@ -379,7 +398,7 @@ const Dashboard = () => {
             Yes
           </Button>
         </DialogActions>
-      </Dialog> */}
+      </Dialog>
     </Grid>
   )
 }

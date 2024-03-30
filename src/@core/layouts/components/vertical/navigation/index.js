@@ -2,7 +2,7 @@
 import { useRef, useState } from 'react'
 
 // ** MUI Import
-import List from '@mui/material/List'
+import { List, CardMedia } from '@mui/material'
 import Box from '@mui/material/Box'
 import { styled, useTheme } from '@mui/material/styles'
 
@@ -120,6 +120,17 @@ const Navigation = props => {
                 />
               </List>
             )}
+            <Box sx={{ p: 3 }}>
+              <p style={{ color: '#000', textAlign: 'center', margin: 0 }}>Developed by</p>
+              <a href='https://www.cdmi.in/' target='_blank' rel='noreferrer'>
+                <CardMedia
+                  component={'img'}
+                  sx={{ width: '100%', maxWidth: '100%' }}
+                  image={`/creative-logo-blue.svg`}
+                  title={'Creative Design and Multimedia Institute'}
+                />
+              </a>
+            </Box>
           </Box>
         </ScrollWrapper>
       </Box>

@@ -80,6 +80,7 @@ const Dashboard = () => {
   const [unSoldDialog, setunSoldDialog] = useState(false)
   const [sellDialog, setSellDialog] = useState(false)
   const [currentPlayerBid, setCurrentPlayerBid] = useState(null)
+  const [showAd, setShowAd] = useState(false)
 
   const [bidProgress, setBidProgress] = useState([])
 
@@ -111,6 +112,10 @@ const Dashboard = () => {
       setAllTeams(team)
       setCurrentPlayerBid(currentPlayer)
       setBidProgress(bidProgress)
+      setShowAd(true)
+      setTimeout(() => {
+        setShowAd(false)
+      }, 2000)
     })
 
     socket.on('currentPlayerBid', ({ currentPlayer }) => {
@@ -279,7 +284,7 @@ const Dashboard = () => {
                 <GavelIcon />
               </Button>
             )}
-            {isValidAdmin && (
+            {isValidAdmin && !bidProgress.length && (
               <Button variant='contained' color='error' sx={{ ml: 3 }} onClick={() => setunSoldDialog(true)}>
                 <DoNotDisturbAltIcon />
               </Button>
@@ -291,6 +296,10 @@ const Dashboard = () => {
             <Grid item xs={12} md={12}>
               <Grid container spacing={3} justifyContent={'center'}>
                 {allTeams.map((el, inx) => {
+                  let totalPlayersOfTeam = noOfTeamPlayer(playersData, el) - 2
+                  let teamBalance = el?.totalpurse - (11 - totalPlayersOfTeam) * 2
+                  let reserveBalance = (11 - totalPlayersOfTeam) * 2
+
                   return (
                     <Grid item xs={12} md={3} key={inx}>
                       <Button
@@ -305,14 +314,16 @@ const Dashboard = () => {
                           backgroundColor: colorCode[inx],
                           cursor: 'pointer'
                         }}
-                        disabled={noOfTeamPlayer(playersData, el) == 13}
+                        disabled={
+                          totalPlayersOfTeam == 11 || el?.totalpurse == 0 || sumOfBid(bidProgress) >= teamBalance + 2
+                        }
                         onClick={() => raiseBid(el)}
                       >
                         <Typography component='div' variant='h6' sx={{ color: '#fff', p: 2, fontSize: '22px' }}>
-                          {el?.name} ({noOfTeamPlayer(playersData, el) || 0})
+                          {el?.name} ({totalPlayersOfTeam || 0} P)
                           <br />
-                          <Typography variant='span' sx={{ color: '#fff', p: 2, fontSize: 16 }}>
-                            {noOfTeamPlayer(playersData, el) == 13 ? '0' : el?.totalpurse} Lakh remains
+                          <Typography variant='span' sx={{ color: '#fff', p: 2, fontSize: 18 }}>
+                            {teamBalance} L + <b>{reserveBalance} L</b> = {teamBalance + reserveBalance} L
                           </Typography>
                         </Typography>
                       </Button>
@@ -353,6 +364,31 @@ const Dashboard = () => {
             </CardContent>
           </Grid>
         </Grid>
+        {showAd && !isValidAdmin && (
+          <Box
+            sx={{
+              padding: '0.75rem',
+              position: 'absolute',
+              zIndex: '9999',
+              inset: '0',
+              backgroundColor: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'column'
+            }}
+          >
+            <p style={{ color: '#000', textAlign: 'center', margin: 0 }}>Developed by...</p>
+            <a href='https://www.cdmi.in/' target='_blank' rel='noreferrer'>
+              <CardMedia
+                component={'img'}
+                sx={{ width: '100%', maxWidth: '100%' }}
+                image={`/creative-logo-blue.svg`}
+                title={'Creative Design and Multimedia Institute'}
+              />
+            </a>
+          </Box>
+        )}
       </Dialog>
 
       <Dialog

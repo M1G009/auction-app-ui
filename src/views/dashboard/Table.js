@@ -27,6 +27,7 @@ import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import axios from 'axios'
+import TextField from '@mui/material/TextField'
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialogContent-root': {
@@ -37,7 +38,7 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   }
 }))
 
-const DashboardTable = ({ data, teams = [], getUsers = null }) => {
+const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
   const router = useRouter()
   const [updateModel, setUpdateModel] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -75,7 +76,12 @@ const DashboardTable = ({ data, teams = [], getUsers = null }) => {
         let checkToken = localStorage.getItem('authorization')
         await axios.patch(
           `${process.env.API_BASE_URL}/api/v1/user/${updateModel._id}`,
-          { type: updateModel.type, team: updateModel?.team?._id || undefined },
+          {
+            type: updateModel.type,
+            team: updateModel?.team?._id || undefined,
+            name: updateModel?.name,
+            mobile: updateModel?.mobile
+          },
           {
             headers: {
               authorization: checkToken
@@ -109,7 +115,7 @@ const DashboardTable = ({ data, teams = [], getUsers = null }) => {
               <TableCell>Bowl Style</TableCell>
               <TableCell>Wicket Keeper</TableCell>
               <TableCell>Final Price</TableCell>
-              {isAdmin && <TableCell>Edit</TableCell>}
+              {isAdmin && edit && <TableCell>Edit</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -140,7 +146,7 @@ const DashboardTable = ({ data, teams = [], getUsers = null }) => {
                   <TableCell>Not sold yet</TableCell>
                 )}
 
-                {isAdmin && (
+                {isAdmin && edit && (
                   <TableCell>
                     <Button variant='contained' color='error' onClick={() => openModelHandler(row)}>
                       Edit
@@ -173,13 +179,31 @@ const DashboardTable = ({ data, teams = [], getUsers = null }) => {
           <CloseIcon />
         </IconButton>
         <DialogContent dividers>
+          <TextField
+            id='Name'
+            label='Name'
+            variant='outlined'
+            value={updateModel?.name || ''}
+            onChange={e => setUpdateModel({ ...updateModel, name: e.target.value })}
+          />
+          <br />
+          <br />
+          <TextField
+            id='Mobile'
+            label='Mobile'
+            variant='outlined'
+            value={updateModel?.mobile || ''}
+            onChange={e => setUpdateModel({ ...updateModel, mobile: e.target.value })}
+          />
+          <br />
+          <br />
           <FormControl sx={{ m: 1, width: 500, maxWidth: '100%' }} size='large'>
             <InputLabel id='demo-select-small-label'>Team</InputLabel>
             <Select
               labelId='demo-select-small-label'
               id='demo-select-small'
-              value={updateModel?.team?._id || ''}
               label='Team'
+              value={updateModel?.team?._id || ''}
               onChange={e => setUpdateModel({ ...updateModel, team: { ...updateModel.team, _id: e.target.value } })}
             >
               <MenuItem value=''>

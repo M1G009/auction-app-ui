@@ -305,14 +305,14 @@ const Dashboard = () => {
                           backgroundColor: colorCode[inx],
                           cursor: 'pointer'
                         }}
-                        disabled={noOfTeamPlayer(playersData, el) == 12}
+                        disabled={noOfTeamPlayer(playersData, el) == 13}
                         onClick={() => raiseBid(el)}
                       >
                         <Typography component='div' variant='h6' sx={{ color: '#fff', p: 2, fontSize: '22px' }}>
                           {el?.name} ({noOfTeamPlayer(playersData, el) || 0})
                           <br />
                           <Typography variant='span' sx={{ color: '#fff', p: 2, fontSize: 16 }}>
-                            {el?.totalpurse} Lakh remains
+                            {noOfTeamPlayer(playersData, el) == 13 ? '0' : el?.totalpurse} Lakh remains
                           </Typography>
                         </Typography>
                       </Button>

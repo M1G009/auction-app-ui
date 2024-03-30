@@ -108,7 +108,7 @@ const Teams = () => {
         <TextField label='Search Player' value={search} variant='outlined' onChange={e => setSearch(e.target.value)} />
       </Box>
       <br />
-      <Table data={filterData} teams={teams} getUsers={getUsers} />
+      <Table data={filterData} teams={teams} getUsers={getUsers} edit={true} />
     </>
   )
 }

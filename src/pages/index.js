@@ -254,15 +254,17 @@ const Dashboard = () => {
       </Grid>
       <Dialog fullScreen open={!!currentPlayerBid} TransitionComponent={Transition}>
         <AppBar sx={{ position: 'relative', p: 2 }}>
-          <IconButton
-            edge='start'
-            color='inherit'
-            onClick={() => setCurrentPlayerBid(null)}
-            aria-label='close'
-            sx={{ position: 'absolute', right: 0, top: 0, color: '#000' }}
-          >
-            <CloseIcon />
-          </IconButton>
+          {(!bidProgress.length || !isValidAdmin) && (
+            <IconButton
+              edge='start'
+              color='inherit'
+              onClick={() => setCurrentPlayerBid(null)}
+              aria-label='close'
+              sx={{ position: 'absolute', right: 0, top: 0, color: '#000' }}
+            >
+              <CloseIcon />
+            </IconButton>
+          )}
 
           <Typography
             sx={{ flex: 1, color: '#fff', textAlign: 'center', textDecoration: 'underline' }}
@@ -362,6 +364,14 @@ const Dashboard = () => {
                 <b>Wicket Keeper:</b> {currentPlayerBid?.wicketkeeper}
               </Typography>
             </CardContent>
+            <Box sx={{ p: 3, opacity: 0.05 }}>
+              <CardMedia
+                component={'img'}
+                sx={{ width: '100%', maxWidth: '100%' }}
+                image={`/creative-logo-blue.svg`}
+                title={'Creative Design and Multimedia Institute'}
+              />
+            </Box>
           </Grid>
         </Grid>
         {showAd && !isValidAdmin && (

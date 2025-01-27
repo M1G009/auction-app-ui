@@ -1,5 +1,6 @@
 // ** Next Import
 import Link from 'next/link'
+import Image from 'next/image'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -48,7 +49,7 @@ const VerticalNavHeader = props => {
         <Link href='/' passHref>
           <StyledLink>
             <HeaderTitle variant='h6' sx={{ ml: 3 }}>
-              {themeConfig.templateName}
+              <Image src={"/logo.svg"} alt='Auction' width='183' height='41' />
             </HeaderTitle>
           </StyledLink>
         </Link>

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+
 html,
 body {
   min-height: 100%;
@@ -21,4 +23,9 @@ code:not([class*='language-']):after {
 }
 code[class*='language-'] {
   padding: 0;
+}
+
+
+.swal2-container{
+  z-index: 99999 !important;
 }

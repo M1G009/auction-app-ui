@@ -46,7 +46,7 @@ const DefaultPalette = (mode, themeColor) => {
     success: {
       light: '#6AD01F',
       main: '#56CA00',
-      dark: '#4CB200',
+      dark: '#9e56e2',
       contrastText: '#FFF'
     },
     error: {

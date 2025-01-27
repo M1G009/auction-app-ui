@@ -234,7 +234,8 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
               </MenuItem>
               <MenuItem value='Owner'>Owner</MenuItem>
               <MenuItem value='Captain'>Captain</MenuItem>
-              <MenuItem value='A'>Player</MenuItem>
+              <MenuItem value='IconPlayer'>Icon Player</MenuItem>
+              <MenuItem value='Player'>Player</MenuItem>
             </Select>
           </FormControl>
         </DialogContent>

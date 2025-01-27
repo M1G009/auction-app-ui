@@ -63,20 +63,24 @@ const Teams = () => {
       .filter(el => el?.team?._id == currentTeam || currentTeam == '')
       .sort((a, b) => {
         if (a.type == 'Owner' && b.type != 'Owner') {
-          return -1 // Player a is an owner but player b is not, so a comes first
+          return -1 
         } else if (a.type != 'Owner' && b.type == 'Owner') {
-          return 1 // Player b is an owner but player a is not, so b comes first
+          return 1
         }
         if (a.type == 'Captain' && b.type != 'Captain') {
-          return -1 // Player a is an owner but player b is not, so a comes first
+          return -1 
         } else if (a.type != 'Captain' && b.type == 'Captain') {
-          return 1 // Player b is an owner but player a is not, so b comes first
+          return 1
+        }if (a.type == 'IconPlayer' && b.type != 'IconPlayer') {
+          return -1 
+        } else if (a.type != 'IconPlayer' && b.type == 'IconPlayer') {
+          return 1
         } else if (a.team && !b.team) {
-          return -1 // Player a is in a team but player b is not, so a comes first
+          return -1
         } else if (!a.team && b.team) {
-          return 1 // Player b is in a team but player a is not, so b comes first
+          return 1
         } else {
-          return 0 // Both players are either in a team or not, maintain the existing order
+          return 0
         }
       }) || []
 

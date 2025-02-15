@@ -21,7 +21,8 @@ import {
   DialogTitle,
   DialogActions,
   DialogContent,
-  TextField
+  TextField,
+  Card
 } from '@mui/material'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
@@ -64,7 +65,7 @@ const TabName = styled('span')(({ theme }) => ({
 }))
 
 const noOfTeamPlayer = (allPlayers, team) => {
-  const teamData = { owner: 1, captain: 0, iconPlayer: 0, players: 0, totalSpend: 0 }
+  const teamData = { captain: 0, iconPlayer: 0, players: 0, totalSpend: 0 }
   if (allPlayers && allPlayers.length && team && team._id) {
     teamData.iconPlayer = allPlayers.filter(el => el?.team?._id == team._id && el.type == 'IconPlayer')?.length || 0
     teamData.players = allPlayers.filter(el => el?.team?._id == team._id && el.type == 'Player')?.length || 0
@@ -73,8 +74,8 @@ const noOfTeamPlayer = (allPlayers, team) => {
       allPlayers.filter(el => el?.team?._id === team._id).reduce((sum, player) => sum + (player?.finalprice || 0), 0) ||
       0
   }
-  const { owner, captain, iconPlayer, players } = teamData
-  teamData.total = owner + captain + iconPlayer + players
+  const { captain, iconPlayer, players } = teamData
+  teamData.total = captain + iconPlayer + players
 
   return teamData
 }
@@ -131,12 +132,10 @@ const Dashboard = () => {
     })
 
     socket.on('playersData', ({ players, team, currentPlayer, bidProgress, auctionSetting }) => {
-      console.log('playersData', players)
       setPlayersData(players)
       setAllTeams(team)
       setCurrentPlayerBid(currentPlayer)
       setBidProgress(bidProgress)
-      console.log('auctionSetting', auctionSetting)
       setAuctionSettingData(auctionSetting)
     })
 
@@ -265,7 +264,7 @@ const Dashboard = () => {
   }
 
   const sellBid = () => {
-    const soldPlayerData = {...currentPlayerBid}
+    const soldPlayerData = { ...currentPlayerBid }
     socket.emit('sellBid', {})
     setSellDialog(false)
     setSoldPlayerData(soldPlayerData)
@@ -293,9 +292,6 @@ const Dashboard = () => {
   let soldPlayers = data.filter(el => !!el.team).length
   let unsoldPlayers = totalPlayers - soldPlayers
 
-  const maxPlayersPerteam = auctionSettingData?.maxPlayersPerteam || 0
-  const reservePlayersPerTeam = auctionSettingData?.maxPlayersPerteam || 0
-
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
@@ -309,10 +305,10 @@ const Dashboard = () => {
             sx={{ borderBottom: theme => `1px solid ${theme.palette.divider}` }}
           >
             <Tab
-              value='Owner'
+              value='Team'
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <TabName>Owner</TabName>
+                  <TabName>Teams</TabName>
                 </Box>
               }
             />
@@ -372,7 +368,40 @@ const Dashboard = () => {
             </Box>
           </Box>
         )}
-        <Table data={data} />
+        {currentType !== 'Team' ? (
+          <>
+            <Table data={data} />
+          </>
+        ) : (
+          <>
+            <Grid container spacing={3} mt={2}>
+              {allTeams.map((el, inx) => {
+                return (
+                  <Grid item key={inx} xs={12} md={3} lg={3}>
+                    <Card>
+                      <CardMedia
+                        component={'img'}
+                        sx={{ width: 362, maxWidth: '100%', aspectRatio: 1, height: '100%' }}
+                        image={`${process.env.API_BASE_URL}/team/${el?.logo}`}
+                        title={el?.name}
+                      />
+                      <CardContent>
+                        <Typography gutterBottom variant='h5' component='div' sx={{ color: '#804bdf' }}>
+                          <b>
+                            {inx + 1} - {el?.name}
+                          </b>
+                        </Typography>
+                        <Typography gutterBottom variant='h6' component='div'>
+                          <b>Owner:</b> {el?.owner}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                )
+              })}
+            </Grid>
+          </>
+        )}
       </Grid>
       <Dialog fullScreen open={!!currentPlayerBid} TransitionComponent={Transition}>
         <AppBar
@@ -669,7 +698,7 @@ const Dashboard = () => {
               <Grid container spacing={3} justifyContent={'center'}>
                 {allTeams.map((el, inx) => {
                   let teamPlayers = noOfTeamPlayer(playersData, el)
-                  let reservePlayers = teamPlayers?.owner + teamPlayers?.captain + teamPlayers?.iconPlayer
+                  let reservePlayers = teamPlayers?.captain + teamPlayers?.iconPlayer
                   let totalPlayersOfTeam = teamPlayers?.total || 0
 
                   let reserveBalance =
@@ -678,6 +707,13 @@ const Dashboard = () => {
                       teamPlayers?.players) *
                     (auctionSettingData?.startBid || 1)
                   let teamBalance = 100 - teamPlayers?.totalSpend - reserveBalance
+
+                  const disabled =
+                    totalPlayersOfTeam == auctionSettingData?.maxPlayersPerteam ||
+                    el?.teamBalance == 0 ||
+                    sumOfBid(bidProgress) >= teamBalance + (auctionSettingData?.startBid || 1)
+
+                  const currentBidTeam = (!!bidProgress.length && bidProgress[bidProgress.length - 1]?.id) === el.id
 
                   return (
                     <Grid item xs={12} md={4} key={inx}>
@@ -690,8 +726,8 @@ const Dashboard = () => {
                           height: '100%',
                           width: '100%',
                           p: 1,
-                          background: `url(/button/${inx + 1}.png)`,
-                          cursor: 'pointer',
+                          background: disabled ? '#4d4d4d' : `url(/button/${inx + 1}.png)`,
+                          cursor: currentBidTeam ? 'not-allowed' : 'pointer',
                           backgroundSize: '100% 100%',
                           backgroundRepeat: 'no-repeat',
                           backgroundPosition: 'center',
@@ -700,11 +736,8 @@ const Dashboard = () => {
                           flexDirection: 'column',
                           padding: '15px 15px 30px 15px'
                         }}
-                        disabled={
-                          totalPlayersOfTeam == auctionSettingData?.maxPlayersPerteam ||
-                          el?.teamBalance == 0 ||
-                          sumOfBid(bidProgress) >= teamBalance + (auctionSettingData?.startBid || 1)
-                        }
+                        className={currentBidTeam ? 'slide-fwd-center' : ''}
+                        disabled={disabled}
                         onClick={() => raiseBid(el)}
                       >
                         <Typography
@@ -784,9 +817,9 @@ const Dashboard = () => {
             </a>
           </Box>
         )}
-        <Dialog open={soldPlayerData} aria-labelledby='alert-dialog-title' aria-describedby='alert-dialog-description'>
+        {/* <Dialog open={soldPlayerData} aria-labelledby='alert-dialog-title' aria-describedby='alert-dialog-description'>
           <PlayerCard data={soldPlayerData} />
-        </Dialog>
+        </Dialog> */}
       </Dialog>
 
       <Dialog
@@ -879,7 +912,7 @@ const Dashboard = () => {
               label='Max Players'
               value={auctionSettingData?.maxPlayersPerteam || 0}
               variant='outlined'
-              onChange={e => setAuctionSettingData({ ...maxPlayersPerteam, auctionName: e.target.value })}
+              onChange={e => setAuctionSettingData({ ...auctionSettingData, maxPlayersPerteam: e.target.value })}
               onBlur={updateSettinghandler}
             />
             <TextField
@@ -887,7 +920,15 @@ const Dashboard = () => {
               label='Reserve Players'
               value={auctionSettingData?.reservePlayersPerTeam || 0}
               variant='outlined'
-              onChange={e => setAuctionSettingData({ ...reservePlayersPerTeam, auctionName: e.target.value })}
+              onChange={e => setAuctionSettingData({ ...auctionSettingData, reservePlayersPerTeam: e.target.value })}
+              onBlur={updateSettinghandler}
+            />
+            <TextField
+              type='number'
+              label='Starting Bid'
+              value={auctionSettingData?.startBid || 1}
+              variant='outlined'
+              onChange={e => setAuctionSettingData({ ...auctionSettingData, startBid: e.target.value })}
               onBlur={updateSettinghandler}
             />
           </Box>

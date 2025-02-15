@@ -28,6 +28,7 @@ import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import axios from 'axios'
 import TextField from '@mui/material/TextField'
+import Image from 'next/image'
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialogContent-root': {
@@ -124,21 +125,19 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
                 <TableCell>{index + 1}</TableCell>
                 <TableCell sx={{ py: theme => `${theme.spacing(0.5)} !important` }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Avatar
-                      alt={row.name}
-                      src={`${process.env.API_BASE_URL}/player/${row.photo}`}
-                      sx={{ width: 70, height: 70 }}
-                    />
+                    <Box sx={{ height: 100, width: 100, position: "relative", maxHeight: "auto" }}>
+                      <Image alt={row.name} src={`${process.env.API_BASE_URL}/player/${row.photo}`} layout='fill' />
+                    </Box>
                     <Typography sx={{ fontWeight: 500, fontSize: '0.875rem !important', ml: 1 }}>{row.name}</Typography>
                   </Box>
                 </TableCell>
                 <TableCell>{row.team?.name || 'Not Selected Yet'}</TableCell>
                 <TableCell>{row.mobile}</TableCell>
-                <TableCell>{row.allrounder}</TableCell>
-                <TableCell>{row.batstyle}</TableCell>
-                <TableCell>{row.bowlstyle}</TableCell>
-                <TableCell>{row.wicketkeeper}</TableCell>
-                {row.type == 'Owner' || row.type == 'Captain' ? (
+                <TableCell>{row.batstyle && row.bowlstyle ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{row.batstyle ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{row.bowlstyle ? 'Yes' : 'No'}</TableCell>
+                <TableCell>{row.wicketkeeper ? 'Yes' : 'No'}</TableCell>
+                {row.type == 'Captain' || row.type == 'IconPlayer' ? (
                   <TableCell>{row.type}</TableCell>
                 ) : row.team ? (
                   <TableCell>{row.finalprice} Lakh</TableCell>

@@ -32,23 +32,22 @@ const Teams = () => {
       <Grid container spacing={3}>
         {data.map((el, inx) => {
           return (
-            <Grid item key={inx} xs={12} md={3} lg={4}>
+            <Grid item key={inx} xs={12} md={3} lg={3}>
               <Card>
                 <CardMedia
                   component={'img'}
-                  sx={{ width: '100%', maxWidth: '100%' }}
+                  sx={{ width: 362, maxWidth: '100%', aspectRatio: 1, height: '100%' }}
                   image={`${process.env.API_BASE_URL}/team/${el?.logo}`}
                   title={el?.name}
                 />
                 <CardContent>
                   <Typography gutterBottom variant='h5' component='div' sx={{ color: '#804bdf' }}>
-                    <b>{el?.name}</b>
+                    <b>
+                      {inx + 1} - {el?.name}
+                    </b>
                   </Typography>
                   <Typography gutterBottom variant='h6' component='div'>
-                    <b>Owner:</b> {el?.owner?.name}
-                  </Typography>
-                  <Typography gutterBottom variant='h6' component='div'>
-                    <b>Captain:</b> {el?.captain?.name}
+                    <b>Owner:</b> {el?.owner}
                   </Typography>
                 </CardContent>
               </Card>

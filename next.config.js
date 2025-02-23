@@ -6,10 +6,12 @@ dotenv.config()
 module.exports = {
   trailingSlash: true,
   reactStrictMode: false,
+  output: 'export', // Forces Next.js to generate static files
   experimental: {
     esmExternals: false,
-    jsconfigPaths: true // enables it for both jsconfig.json and tsconfig.json
+    jsconfigPaths: true
   },
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx'], // Ensures Next.js finds pages inside src/pages
   webpack: config => {
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -22,6 +24,7 @@ module.exports = {
     API_BASE_URL: process.env.API_BASE_URL
   },
   images: {
-    domains: ['localhost'],
-  },
+    domains: ['localhost', '64.227.171.118'],
+    unoptimized: true // Required for Firebase Hosting
+  }
 }

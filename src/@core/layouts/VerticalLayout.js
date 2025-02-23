@@ -2,12 +2,8 @@
 import { useState } from 'react'
 
 // ** MUI Imports
-import Fab from '@mui/material/Fab'
 import { styled } from '@mui/material/styles'
 import Box from '@mui/material/Box'
-
-// ** Icons Imports
-import ArrowUp from 'mdi-material-ui/ArrowUp'
 
 // ** Theme Config Import
 import themeConfig from 'src/configs/themeConfig'
@@ -16,10 +12,6 @@ import themeConfig from 'src/configs/themeConfig'
 import AppBar from './components/vertical/appBar'
 import Navigation from './components/vertical/navigation'
 import Footer from './components/shared-components/footer'
-import ScrollToTop from 'src/@core/components/scroll-to-top'
-
-// ** Styled Component
-import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 
 const VerticalLayoutWrapper = styled('div')({
   height: '100%',
@@ -47,7 +39,7 @@ const ContentWrapper = styled('main')(({ theme }) => ({
 
 const VerticalLayout = props => {
   // ** Props
-  const { settings, children, scrollToTop } = props
+  const { settings, children } = props
 
   // ** Vars
   const { contentWidth } = settings
@@ -88,16 +80,6 @@ const VerticalLayout = props => {
           <Footer {...props} />
         </MainContentWrapper>
       </VerticalLayoutWrapper>
-
-      {scrollToTop ? (
-        scrollToTop(props)
-      ) : (
-        <ScrollToTop className='mui-fixed'>
-          <Fab color='primary' size='small' aria-label='scroll back to top'>
-            <ArrowUp />
-          </Fab>
-        </ScrollToTop>
-      )}
     </>
   )
 }

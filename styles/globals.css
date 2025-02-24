@@ -29,28 +29,35 @@ code[class*='language-'] {
   z-index: 99999 !important;
 }
 
-.slide-fwd-center {
+.auction-header {
+  background: url('/auctionHeader.png') !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+/* .slide-fwd-center {
   -webkit-animation: slide-fwd-center 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite alternate both;
   animation: slide-fwd-center 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite alternate both;
 }
 
 @-webkit-keyframes slide-fwd-center {
   0% {
-    -webkit-transform: scale(0.85);
-    transform: scale(0.85);
+    -webkit-transform: scale(0.99);
+    transform: scale(0.99);
   }
   100% {
-    -webkit-transform: scale(1.1);
-    transform: scale(1.1);
+    -webkit-transform: scale(1);
+    transform: scale(1);
   }
 }
 @keyframes slide-fwd-center {
   0% {
-    -webkit-transform: scale(0.85);
-    transform: scale(0.85);
+    -webkit-transform: scale(0.99);
+    transform: scale(0.99);
   }
   100% {
-    -webkit-transform: scale(1.1);
-    transform: scale(1.1);
+    -webkit-transform: scale(1);
+    transform: scale(1);
   }
-}
+} */

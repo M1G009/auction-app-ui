@@ -34,7 +34,6 @@ import GavelIcon from '@mui/icons-material/Gavel'
 // ** Demo Components Imports
 import Table from 'src/views/dashboard/Table'
 import Image from 'next/image'
-import PlayerCard from 'src/@core/components/PlayerCard'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction='up' ref={ref} {...props} />
@@ -369,49 +368,42 @@ const Dashboard = () => {
           </Box>
         )}
         {currentType !== 'Team' ? (
-          <>
-            <Table data={data} />
-          </>
+          <Table data={data} />
         ) : (
-          <>
-            <Grid container spacing={3} mt={2}>
-              {allTeams.map((el, inx) => {
-                return (
-                  <Grid item key={inx} xs={12} md={3} lg={3}>
-                    <Card>
-                      <CardMedia
-                        component={'img'}
-                        sx={{ width: 362, maxWidth: '100%', aspectRatio: 1, height: '100%' }}
-                        image={`${process.env.API_BASE_URL}/team/${el?.logo}`}
-                        title={el?.name}
-                      />
-                      <CardContent>
-                        <Typography gutterBottom variant='h5' component='div' sx={{ color: '#804bdf' }}>
-                          <b>
-                            {inx + 1} - {el?.name}
-                          </b>
-                        </Typography>
-                        <Typography gutterBottom variant='h6' component='div'>
-                          <b>Owner:</b> {el?.owner}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )
-              })}
-            </Grid>
-          </>
+          <Grid container spacing={3} mt={2}>
+            {allTeams.map((el, inx) => {
+              return (
+                <Grid item key={'test' + inx} xs={12} md={3} lg={3}>
+                  <Card>
+                    <CardMedia
+                      component={'img'}
+                      sx={{ width: 362, maxWidth: '100%', aspectRatio: 1, height: '100%' }}
+                      image={`${process.env.API_BASE_URL}/team/${el?.logo}`}
+                      title={el?.name}
+                    />
+                    <CardContent>
+                      <Typography gutterBottom variant='h5' component='div' sx={{ color: '#804bdf' }}>
+                        <b>
+                          {inx + 1} - {el?.name}
+                        </b>
+                      </Typography>
+                      <Typography gutterBottom variant='h6' component='div'>
+                        <b>Owner:</b> {el?.owner}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )
+            })}
+          </Grid>
         )}
       </Grid>
       <Dialog fullScreen open={!!currentPlayerBid} TransitionComponent={Transition}>
         <AppBar
+          className='auction-header'
           sx={{
             position: 'relative',
-            p: '1.5rem',
-            background: 'url(./auctionHeader.png)',
-            backgroundPosition: 'center',
-            backgroundSize: 'cover',
-            backgroundRepeat: 'no-repeat'
+            p: '1.5rem'
           }}
         >
           {(!bidProgress.length || !isValidAdmin) && (
@@ -532,7 +524,7 @@ const Dashboard = () => {
           </Typography>
         </AppBar>
         <Grid container spacing={6} justifyContent={'center'} sx={{ px: 5, mt: 4 }}>
-          <Grid item xs={4}>
+          <Grid item xs={12} md={6} lg={4}>
             <Box
               sx={{
                 background: '#FFFFFF',

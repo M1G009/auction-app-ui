@@ -3,7 +3,13 @@ const Card = theme => {
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: theme.shadows[6],
+          borderRadius: '20px',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.16)',
+            transform: 'translateY(-4px)'
+          },
           '& .card-more-options': {
             marginTop: theme.spacing(-1),
             marginRight: theme.spacing(-3)
@@ -23,10 +29,10 @@ const Card = theme => {
           }
         },
         title: {
-          lineHeight: 1,
-          fontWeight: 500,
+          lineHeight: 1.2,
+          fontWeight: 600,
           fontSize: '1.25rem',
-          letterSpacing: '0.0125em'
+          letterSpacing: '-0.01em'
         },
         action: {
           marginTop: 0,

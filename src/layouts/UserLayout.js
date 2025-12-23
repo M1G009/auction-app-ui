@@ -34,7 +34,6 @@ const UserLayout = ({ children }) => {
           hidden={hidden}
           settings={settings}
           saveSettings={saveSettings}
-          toggleNavVisibility={props.toggleNavVisibility}
         />
       )}
     >

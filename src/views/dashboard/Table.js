@@ -15,7 +15,7 @@ import {
   Avatar
 } from '@mui/material'
 import Button from '@mui/material/Button'
-import { styled } from '@mui/material/styles'
+import { styled, alpha } from '@mui/material/styles'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -29,13 +29,127 @@ import Select from '@mui/material/Select'
 import axios from 'axios'
 import TextField from '@mui/material/TextField'
 import Image from 'next/image'
+import Swal from 'sweetalert2'
 
-const BootstrapDialog = styled(Dialog)(({ theme }) => ({
+const StyledCard = styled(Card)(({ theme }) => ({
+  borderRadius: '20px',
+  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+  overflow: 'hidden'
+}))
+
+const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
+  borderRadius: '20px',
+  '& .MuiTable-root': {
+    '& .MuiTableHead-root': {
+      '& .MuiTableRow-root': {
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        '& .MuiTableCell-head': {
+          color: '#fff',
+          fontWeight: 600,
+          fontSize: '0.875rem',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px'
+        }
+      }
+    },
+    '& .MuiTableBody-root': {
+      '& .MuiTableRow-root': {
+        transition: 'all 0.2s ease',
+        '&:hover': {
+          backgroundColor: alpha(theme.palette.primary.main, 0.08),
+          transform: 'scale(1.01)'
+        },
+        '& .MuiTableCell-body': {
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`
+        }
+      }
+    }
+  }
+}))
+
+const StyledEditButton = styled(Button)(({ theme }) => ({
+  borderRadius: '10px',
+  padding: '8px 20px',
+  fontSize: '13px',
+  fontWeight: 600,
+  textTransform: 'none',
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  color: '#FFFFFF',
+  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+  transition: 'all 0.3s ease',
+  marginRight: theme.spacing(1),
+  '&:hover': {
+    background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+    color: '#FFFFFF',
+    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.4)',
+    transform: 'translateY(-2px)'
+  }
+}))
+
+const StyledDeleteButton = styled(Button)(({ theme }) => ({
+  borderRadius: '10px',
+  padding: '8px 20px',
+  fontSize: '13px',
+  fontWeight: 600,
+  textTransform: 'none',
+  background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
+  color: '#FFFFFF',
+  boxShadow: '0 4px 12px rgba(238, 90, 111, 0.3)',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%)',
+    color: '#FFFFFF',
+    boxShadow: '0 6px 16px rgba(238, 90, 111, 0.4)',
+    transform: 'translateY(-2px)'
+  }
+}))
+
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialog-paper': {
+    borderRadius: '20px',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+  },
   '& .MuiDialogContent-root': {
-    padding: theme.spacing(2)
+    padding: theme.spacing(3)
   },
   '& .MuiDialogActions-root': {
-    padding: theme.spacing(1)
+    padding: theme.spacing(2, 3)
+  }
+}))
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    backgroundColor: alpha(theme.palette.primary.main, 0.04),
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      backgroundColor: alpha(theme.palette.primary.main, 0.08)
+    },
+    '&.Mui-focused': {
+      backgroundColor: alpha(theme.palette.primary.main, 0.12)
+    }
+  }
+}))
+
+const StyledFormControl = styled(FormControl)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    backgroundColor: alpha(theme.palette.primary.main, 0.04)
+  }
+}))
+
+const StyledSaveButton = styled(Button)(({ theme }) => ({
+  borderRadius: '12px',
+  padding: '10px 24px',
+  fontWeight: 600,
+  textTransform: 'none',
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  color: '#FFFFFF',
+  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+    color: '#FFFFFF',
+    boxShadow: '0 6px 16px rgba(102, 126, 234, 0.4)'
   }
 }))
 
@@ -73,7 +187,7 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
 
   const updateHandler = async () => {
     try {
-      if ((updateModel && updateModel?.team?._id) || updateModel.type) {
+      if (updateModel && updateModel._id) {
         let checkToken = localStorage.getItem('authorization')
         await axios.patch(
           `${process.env.API_BASE_URL}/api/v1/user/${updateModel._id}`,
@@ -81,7 +195,11 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
             type: updateModel.type,
             team: updateModel?.team?._id || undefined,
             name: updateModel?.name,
-            mobile: updateModel?.mobile
+            mobile: updateModel?.mobile,
+            tshirtName: updateModel?.tshirtName || undefined,
+            tshirtSize: updateModel?.tshirtSize || undefined,
+            tshirtNumber: updateModel?.tshirtNumber || undefined,
+            finalprice: updateModel?.finalprice !== undefined ? updateModel.finalprice : undefined
           },
           {
             headers: {
@@ -89,11 +207,43 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
             }
           }
         )
+        Swal.fire('Success', 'User updated successfully', 'success')
         getUsers()
         setUpdateModel(null)
       }
     } catch (error) {
       console.log(error)
+      Swal.fire('Error', error.response?.data?.message || 'Failed to update user', 'error')
+    }
+  }
+
+  const deleteHandler = async (user) => {
+    const { isConfirmed } = await Swal.fire({
+      title: 'Are you sure?',
+      text: `Do you want to delete ${user.name}?`,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      cancelButtonText: 'No, cancel',
+      icon: 'warning'
+    })
+
+    if (isConfirmed) {
+      try {
+        let checkToken = localStorage.getItem('authorization')
+        await axios.delete(
+          `${process.env.API_BASE_URL}/api/v1/user/${user._id}`,
+          {
+            headers: {
+              authorization: checkToken
+            }
+          }
+        )
+        Swal.fire('Deleted!', 'User has been deleted.', 'success')
+        getUsers()
+      } catch (error) {
+        console.log(error)
+        Swal.fire('Error', error.response?.data?.message || 'Failed to delete user', 'error')
+      }
     }
   }
 
@@ -102,8 +252,8 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
   }, [])
 
   return (
-    <Card>
-      <TableContainer>
+    <StyledCard>
+      <StyledTableContainer>
         <Table sx={{ minWidth: 800 }} aria-label='table in dashboard'>
           <TableHead>
             <TableRow>
@@ -116,6 +266,9 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
               <TableCell>Bowl Style</TableCell>
               <TableCell>Wicket Keeper</TableCell>
               <TableCell>Final Price</TableCell>
+              <TableCell>T-Shirt Name</TableCell>
+              <TableCell>T-Shirt Size</TableCell>
+              <TableCell>T-Shirt Number</TableCell>
               {isAdmin && edit && <TableCell>Edit</TableCell>}
             </TableRow>
           </TableHead>
@@ -125,10 +278,38 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
                 <TableCell>{index + 1}</TableCell>
                 <TableCell sx={{ py: theme => `${theme.spacing(0.5)} !important` }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box sx={{ height: 100, width: 100, position: "relative", maxHeight: "auto" }}>
-                      <Image alt={row.name} src={`${process.env.API_BASE_URL}/player/${row.photo}`} layout='fill' />
-                    </Box>
-                    <Typography sx={{ fontWeight: 500, fontSize: '0.875rem !important', ml: 1 }}>{row.name}</Typography>
+                    {row.photo ? (
+                      <Avatar
+                        alt={row.name}
+                        src={row.isTempUser 
+                          ? `${process.env.API_BASE_URL}/temp-users/${row.photo}` 
+                          : `${process.env.API_BASE_URL}/player/${row.photo}`
+                        }
+                        sx={{
+                          width: 100,
+                          height: 100,
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                          border: '3px solid',
+                          borderColor: 'divider'
+                        }}
+                      />
+                    ) : (
+                      <Avatar
+                        sx={{
+                          width: 100,
+                          height: 100,
+                          backgroundColor: '#f0f0f0',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                          border: '3px solid',
+                          borderColor: 'divider'
+                        }}
+                      >
+                        <Typography variant='caption' sx={{ color: '#999' }}>
+                          No Photo
+                        </Typography>
+                      </Avatar>
+                    )}
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.875rem !important', ml: 2 }}>{row.name}</Typography>
                   </Box>
                 </TableCell>
                 <TableCell>{row.team?.name || 'Not Selected Yet'}</TableCell>
@@ -144,25 +325,42 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
                 ) : (
                   <TableCell>Not sold yet</TableCell>
                 )}
+                <TableCell>{row.tshirtName || '-'}</TableCell>
+                <TableCell>{row.tshirtSize || '-'}</TableCell>
+                <TableCell>{row.tshirtNumber || '-'}</TableCell>
 
                 {isAdmin && edit && (
                   <TableCell>
-                    <Button variant='contained' color='error' onClick={() => openModelHandler(row)}>
-                      Edit
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <StyledEditButton variant='contained' onClick={() => openModelHandler(row)}>
+                        Edit
+                      </StyledEditButton>
+                      <StyledDeleteButton variant='contained' onClick={() => deleteHandler(row)}>
+                        Delete
+                      </StyledDeleteButton>
+                    </Box>
                   </TableCell>
                 )}
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </TableContainer>
-      <BootstrapDialog
+      </StyledTableContainer>
+      <StyledDialog
         onClose={() => setUpdateModel(null)}
         aria-labelledby='customized-dialog-title'
         open={!!updateModel}
       >
-        <DialogTitle sx={{ m: 0, p: 2 }} id='customized-dialog-title'>
+        <DialogTitle 
+          sx={{ 
+            m: 0, 
+            p: 3,
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: '#fff',
+            fontWeight: 600
+          }} 
+          id='customized-dialog-title'
+        >
           Update User
         </DialogTitle>
         <IconButton
@@ -170,81 +368,118 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
           onClick={() => setUpdateModel(null)}
           sx={{
             position: 'absolute',
-            right: 8,
-            top: 8,
-            color: theme => theme.palette.grey[500]
+            right: 12,
+            top: 12,
+            color: '#fff',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.1)'
+            }
           }}
         >
           <CloseIcon />
         </IconButton>
-        <DialogContent dividers>
-          <TextField
-            id='Name'
-            label='Name'
-            variant='outlined'
-            value={updateModel?.name || ''}
-            onChange={e => setUpdateModel({ ...updateModel, name: e.target.value })}
-          />
-          <br />
-          <br />
-          <TextField
-            id='Mobile'
-            label='Mobile'
-            variant='outlined'
-            value={updateModel?.mobile || ''}
-            onChange={e => setUpdateModel({ ...updateModel, mobile: e.target.value })}
-          />
-          <br />
-          <br />
-          <FormControl sx={{ m: 1, width: 500, maxWidth: '100%' }} size='large'>
-            <InputLabel id='demo-select-small-label'>Team</InputLabel>
-            <Select
-              labelId='demo-select-small-label'
-              id='demo-select-small'
-              label='Team'
-              value={updateModel?.team?._id || ''}
-              onChange={e => setUpdateModel({ ...updateModel, team: { ...updateModel.team, _id: e.target.value } })}
-            >
-              <MenuItem value=''>
-                <em>Please select one</em>
-              </MenuItem>
-              {teams.map((el, inx) => {
-                return (
-                  <MenuItem key={inx} value={el._id}>
-                    {el.name}
-                  </MenuItem>
-                )
-              })}
-            </Select>
-          </FormControl>
-          <br />
-          <br />
-          <FormControl sx={{ m: 1, width: 500, maxWidth: '100%' }} size='large'>
-            <InputLabel id='demo-select-small-label-type'>Type</InputLabel>
-            <Select
-              labelId='demo-select-small-label-type'
-              id='demo-select-small'
-              value={updateModel?.type || ''}
-              label='Type'
-              onChange={e => setUpdateModel({ ...updateModel, type: e.target.value })}
-            >
-              <MenuItem value=''>
-                <em>Please select one</em>
-              </MenuItem>
-              <MenuItem value='Owner'>Owner</MenuItem>
-              <MenuItem value='Captain'>Captain</MenuItem>
-              <MenuItem value='IconPlayer'>Icon Player</MenuItem>
-              <MenuItem value='Player'>Player</MenuItem>
-            </Select>
-          </FormControl>
+        <DialogContent dividers sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <StyledTextField
+              id='Name'
+              label='Name'
+              variant='outlined'
+              fullWidth
+              value={updateModel?.name || ''}
+              onChange={e => setUpdateModel({ ...updateModel, name: e.target.value })}
+            />
+            <StyledTextField
+              id='Mobile'
+              label='Mobile'
+              variant='outlined'
+              fullWidth
+              value={updateModel?.mobile || ''}
+              onChange={e => setUpdateModel({ ...updateModel, mobile: e.target.value })}
+            />
+            <StyledFormControl fullWidth size='large'>
+              <InputLabel id='demo-select-small-label'>Team</InputLabel>
+              <Select
+                labelId='demo-select-small-label'
+                id='demo-select-small'
+                label='Team'
+                value={updateModel?.team?._id || ''}
+                onChange={e => setUpdateModel({ ...updateModel, team: { ...updateModel.team, _id: e.target.value } })}
+              >
+                <MenuItem value=''>
+                  <em>Please select one</em>
+                </MenuItem>
+                {teams.map((el, inx) => {
+                  return (
+                    <MenuItem key={inx} value={el._id}>
+                      {el.name}
+                    </MenuItem>
+                  )
+                })}
+              </Select>
+            </StyledFormControl>
+            <StyledFormControl fullWidth size='large'>
+              <InputLabel id='demo-select-small-label-type'>Type</InputLabel>
+              <Select
+                labelId='demo-select-small-label-type'
+                id='demo-select-small'
+                value={updateModel?.type || ''}
+                label='Type'
+                onChange={e => setUpdateModel({ ...updateModel, type: e.target.value })}
+              >
+                <MenuItem value=''>
+                  <em>Please select one</em>
+                </MenuItem>
+                <MenuItem value='Owner'>Owner</MenuItem>
+                <MenuItem value='Captain'>Captain</MenuItem>
+                <MenuItem value='IconPlayer'>Icon Player</MenuItem>
+                <MenuItem value='Player'>Player</MenuItem>
+              </Select>
+            </StyledFormControl>
+            <StyledTextField
+              id='TShirtName'
+              label='T-Shirt Name'
+              variant='outlined'
+              fullWidth
+              value={updateModel?.tshirtName || ''}
+              onChange={e => setUpdateModel({ ...updateModel, tshirtName: e.target.value })}
+            />
+            <StyledTextField
+              id='TShirtSize'
+              label='T-Shirt Size'
+              variant='outlined'
+              fullWidth
+              value={updateModel?.tshirtSize || ''}
+              onChange={e => setUpdateModel({ ...updateModel, tshirtSize: e.target.value })}
+            />
+            <StyledTextField
+              id='TShirtNumber'
+              label='T-Shirt Number'
+              variant='outlined'
+              fullWidth
+              value={updateModel?.tshirtNumber || ''}
+              onChange={e => setUpdateModel({ ...updateModel, tshirtNumber: e.target.value })}
+            />
+            <StyledTextField
+              id='FinalPrice'
+              label='Final Price (Lakh)'
+              variant='outlined'
+              fullWidth
+              type='number'
+              value={updateModel?.finalprice || ''}
+              onChange={e => setUpdateModel({ ...updateModel, finalprice: e.target.value ? Number(e.target.value) : 0 })}
+            />
+          </Box>
         </DialogContent>
-        <DialogActions>
-          <Button autoFocus onClick={updateHandler}>
-            Save changes
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={() => setUpdateModel(null)} sx={{ borderRadius: '12px', textTransform: 'none' }}>
+            Cancel
           </Button>
+          <StyledSaveButton autoFocus onClick={updateHandler}>
+            Save changes
+          </StyledSaveButton>
         </DialogActions>
-      </BootstrapDialog>
-    </Card>
+      </StyledDialog>
+    </StyledCard>
   )
 }
 

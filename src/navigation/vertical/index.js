@@ -1,6 +1,7 @@
 // ** Icon imports
 import HomeOutline from 'mdi-material-ui/HomeOutline'
 import AccountCogOutline from 'mdi-material-ui/AccountCogOutline'
+import CogOutline from 'mdi-material-ui/CogOutline'
 
 const navigation = () => {
   return [
@@ -15,9 +16,14 @@ const navigation = () => {
       path: '/players'
     },
     {
-      title: 'Teams',
+      title: 'Settings',
+      icon: CogOutline,
+      path: '/settings'
+    },
+    {
+      title: 'Pending Registrations',
       icon: AccountCogOutline,
-      path: '/team'
+      path: '/temp-users'
     }
   ]
 }

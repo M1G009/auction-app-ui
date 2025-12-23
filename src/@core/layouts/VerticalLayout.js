@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+// import { useState } from 'react' // Removed - no longer needed
 
 // ** MUI Imports
 import { styled } from '@mui/material/styles'
@@ -10,7 +10,7 @@ import themeConfig from 'src/configs/themeConfig'
 
 // ** Components
 import AppBar from './components/vertical/appBar'
-import Navigation from './components/vertical/navigation'
+// import Navigation from './components/vertical/navigation' // Removed - sidebar no longer used
 import Footer from './components/shared-components/footer'
 
 const VerticalLayoutWrapper = styled('div')({
@@ -43,26 +43,20 @@ const VerticalLayout = props => {
 
   // ** Vars
   const { contentWidth } = settings
-  const navWidth = themeConfig.navigationSize
+  // const navWidth = themeConfig.navigationSize // Removed - no longer needed
 
   // ** States
-  const [navVisible, setNavVisible] = useState(false)
+  // const [navVisible, setNavVisible] = useState(false) // Removed - no longer needed
 
   // ** Toggle Functions
-  const toggleNavVisibility = () => setNavVisible(!navVisible)
+  // const toggleNavVisibility = () => setNavVisible(!navVisible) // Removed - no longer needed
 
   return (
     <>
       <VerticalLayoutWrapper className='layout-wrapper'>
-        <Navigation
-          navWidth={navWidth}
-          navVisible={navVisible}
-          setNavVisible={setNavVisible}
-          toggleNavVisibility={toggleNavVisibility}
-          {...props}
-        />
+        {/* Navigation sidebar removed - navigation items now in header */}
         <MainContentWrapper className='layout-content-wrapper'>
-          <AppBar toggleNavVisibility={toggleNavVisibility} {...props} />
+          <AppBar {...props} />
 
           <ContentWrapper
             className='layout-page-content'

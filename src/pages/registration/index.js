@@ -35,6 +35,8 @@ import CloseIcon from '@mui/icons-material/Close'
 import CropIcon from '@mui/icons-material/Crop'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
+import AppBar from '@mui/material/AppBar'
+import Toolbar from '@mui/material/Toolbar'
 
 // ** Layout Import
 import BlankLayout from 'src/@core/layouts/BlankLayout'
@@ -43,11 +45,9 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 const RegistrationWrapper = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
   display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  flexDirection: 'column',
   position: 'relative',
   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  padding: theme.spacing(3),
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -58,6 +58,24 @@ const RegistrationWrapper = styled(Box)(({ theme }) => ({
     background: 'radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.3) 0%, transparent 50%)',
     pointerEvents: 'none'
   }
+}))
+
+const RegistrationContent = styled(Box)(({ theme }) => ({
+  flex: 1,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: theme.spacing(3),
+  position: 'relative',
+  zIndex: 1
+}))
+
+const HeaderAppBar = styled(AppBar)(({ theme }) => ({
+  background: 'rgba(26, 26, 46, 0.95)',
+  backdropFilter: 'blur(10px)',
+  boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+  position: 'relative',
+  zIndex: 2
 }))
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -254,6 +272,8 @@ const PlayerRegistration = () => {
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const [registrationActive, setRegistrationActive] = useState(false)
+  const [registrationStartDate, setRegistrationStartDate] = useState(null)
+  const [registrationEndDate, setRegistrationEndDate] = useState(null)
   const [checkingStatus, setCheckingStatus] = useState(true)
 
   const [registrationFieldsRequired, setRegistrationFieldsRequired] = useState({
@@ -279,15 +299,25 @@ const PlayerRegistration = () => {
   // ** Hook
   const router = useRouter()
 
-  // Check registration status on mount
   useEffect(() => {
     checkRegistrationStatus()
   }, [])
 
+  useEffect(() => {
+    if (!checkingStatus && !registrationActive) {
+      router.replace('/')
+    }
+  }, [checkingStatus, registrationActive, router])
+
   const checkRegistrationStatus = async () => {
     try {
-      const response = await axios.get(`${process.env.API_BASE_URL}/api/v1/auction-setting/registration-status`)
+      const response = await axios.get(
+        `${process.env.API_BASE_URL}/api/v1/auction-setting/registration-status?t=${Date.now()}`,
+        { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } }
+      )
       setRegistrationActive(response.data.registrationActive)
+      setRegistrationStartDate(response.data.registrationStartDate || null)
+      setRegistrationEndDate(response.data.registrationEndDate || null)
       if (response.data.registrationFieldsRequired) {
         setRegistrationFieldsRequired(response.data.registrationFieldsRequired)
       }
@@ -297,6 +327,12 @@ const PlayerRegistration = () => {
     } finally {
       setCheckingStatus(false)
     }
+  }
+
+  const formatRegDate = (d) => {
+    if (!d) return '—'
+
+    return new Date(d).toLocaleDateString(undefined, { dateStyle: 'medium' })
   }
 
   const handleChange = (field) => (event) => {
@@ -465,36 +501,51 @@ const PlayerRegistration = () => {
   if (checkingStatus) {
     return (
       <RegistrationWrapper>
-        <Card>
-          <CardContent sx={{ padding: theme => `${theme.spacing(6, 5)} !important`, textAlign: 'center' }}>
-            <Typography>Checking registration status...</Typography>
-          </CardContent>
-        </Card>
+        <HeaderAppBar position='static'>
+          <Toolbar sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'space-between' }}>
+            <Typography variant='h6' sx={{ fontWeight: 600, color: '#fff' }}>
+              Player Registration
+            </Typography>
+            {registrationActive && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>
+                <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg start: {formatRegDate(registrationStartDate)}</Typography>
+                <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg end: {formatRegDate(registrationEndDate)}</Typography>
+              </Box>
+            )}
+          </Toolbar>
+        </HeaderAppBar>
+        <RegistrationContent>
+          <Card>
+            <CardContent sx={{ padding: theme => `${theme.spacing(6, 5)} !important`, textAlign: 'center' }}>
+              <Typography>Checking registration status...</Typography>
+            </CardContent>
+          </Card>
+        </RegistrationContent>
       </RegistrationWrapper>
     )
   }
 
   if (!registrationActive) {
-    return (
-      <RegistrationWrapper>
-        <Card>
-          <CardContent sx={{ padding: theme => `${theme.spacing(6, 5)} !important` }}>
-            <TitleBox>
-              <Typography className='title'>Player Registration</Typography>
-              <Typography className='subtitle'>Registration is currently closed</Typography>
-            </TitleBox>
-            <Alert severity='info' sx={{ borderRadius: '12px' }}>
-              Registration is not currently active. Please check back later or contact the administrator.
-            </Alert>
-          </CardContent>
-        </Card>
-      </RegistrationWrapper>
-    )
+    return null
   }
 
   if (showSuccessScreen && submittedData) {
     return (
       <RegistrationWrapper>
+      <HeaderAppBar position='static'>
+        <Toolbar sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'space-between' }}>
+          <Typography variant='h6' sx={{ fontWeight: 600, color: '#fff' }}>
+            Player Registration
+          </Typography>
+          {registrationActive && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>
+              <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg start: {formatRegDate(registrationStartDate)}</Typography>
+              <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg end: {formatRegDate(registrationEndDate)}</Typography>
+            </Box>
+          )}
+        </Toolbar>
+      </HeaderAppBar>
+        <RegistrationContent>
         <Card>
           <CardContent sx={{ padding: theme => `${theme.spacing(6, 5)} !important`, textAlign: 'center' }}>
             <Box sx={{ mb: 4 }}>
@@ -659,12 +710,27 @@ const PlayerRegistration = () => {
             </StyledButton>
           </CardContent>
         </Card>
+        </RegistrationContent>
       </RegistrationWrapper>
     )
   }
 
   return (
     <RegistrationWrapper>
+      <HeaderAppBar position='static'>
+        <Toolbar sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'space-between' }}>
+          <Typography variant='h6' sx={{ fontWeight: 600, color: '#fff' }}>
+            Player Registration
+          </Typography>
+          {registrationActive && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>
+              <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg start: {formatRegDate(registrationStartDate)}</Typography>
+              <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg end: {formatRegDate(registrationEndDate)}</Typography>
+            </Box>
+          )}
+        </Toolbar>
+      </HeaderAppBar>
+      <RegistrationContent>
       <Card>
         <CardContent sx={{ padding: theme => `${theme.spacing(6, 5)} !important` }}>
           <TitleBox>
@@ -898,8 +964,7 @@ const PlayerRegistration = () => {
           </form>
         </CardContent>
       </Card>
-
-      {/* Crop Dialog */}
+      </RegistrationContent>
       <Dialog
         open={cropDialogOpen}
         onClose={() => {

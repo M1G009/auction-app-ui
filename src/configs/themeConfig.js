@@ -1,6 +1,6 @@
 const themeConfig = {
   // ** Layout Configs
-  templateName: 'SPL' /* App Name */,
+  templateName: 'Auction App' /* App Name */,
   mode: 'light' /* light | dark */,
   contentWidth: 'boxed' /* full | boxed */,
   // ** Routing Configs

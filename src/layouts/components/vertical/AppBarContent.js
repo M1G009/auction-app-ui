@@ -133,7 +133,10 @@ const AppBarContent = props => {
     if (!isLoggedIn) {
       const checkRegistrationStatus = async () => {
         try {
-          const response = await axios.get(`${process.env.API_BASE_URL}/api/v1/auction-setting/registration-status`)
+          const response = await axios.get(
+            `${process.env.API_BASE_URL}/api/v1/auction-setting/registration-status?t=${Date.now()}`,
+            { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } }
+          )
           setRegistrationActive(response.data.registrationActive || false)
         } catch (err) {
           setRegistrationActive(false)
@@ -213,7 +216,7 @@ const AppBarContent = props => {
                     marginRight: 0.5
                   })
                 }}
-              >
+          >
                 {item.title}
               </StyledNavButton>
             </Link>

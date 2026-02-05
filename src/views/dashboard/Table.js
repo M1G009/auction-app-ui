@@ -104,6 +104,24 @@ const StyledDeleteButton = styled(Button)(({ theme }) => ({
   }
 }))
 
+const StyledUnsoldButton = styled(Button)(({ theme }) => ({
+  borderRadius: '10px',
+  padding: '8px 20px',
+  fontSize: '13px',
+  fontWeight: 600,
+  textTransform: 'none',
+  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+  color: '#FFFFFF',
+  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)',
+    color: '#FFFFFF',
+    boxShadow: '0 6px 16px rgba(245, 158, 11, 0.4)',
+    transform: 'translateY(-2px)'
+  }
+}))
+
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     borderRadius: '20px',
@@ -247,6 +265,33 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
     }
   }
 
+  const unsoldHandler = async (user) => {
+    const { isConfirmed } = await Swal.fire({
+      title: 'Mark as unsold?',
+      text: `Remove ${user.name} from team and set price to 0?`,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, unsold',
+      cancelButtonText: 'Cancel',
+      icon: 'question'
+    })
+
+    if (isConfirmed) {
+      try {
+        const checkToken = localStorage.getItem('authorization')
+        await axios.patch(
+          `${process.env.API_BASE_URL}/api/v1/user/${user._id}`,
+          { team: null, finalprice: 0 },
+          { headers: { authorization: checkToken } }
+        )
+        Swal.fire('Done', 'Player marked as unsold.', 'success')
+        getUsers()
+      } catch (error) {
+        console.log(error)
+        Swal.fire('Error', error.response?.data?.message || 'Failed to mark player as unsold', 'error')
+      }
+    }
+  }
+
   useEffect(() => {
     checkAdmin()
   }, [])
@@ -281,8 +326,8 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
                     {row.photo ? (
                       <Avatar
                         alt={row.name}
-                        src={row.isTempUser 
-                          ? `${process.env.API_BASE_URL}/temp-users/${row.photo}` 
+                        src={row.isTempUser
+                          ? `${process.env.API_BASE_URL}/temp-users/${row.photo}`
                           : `${process.env.API_BASE_URL}/player/${row.photo}`
                         }
                         sx={{
@@ -331,10 +376,15 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
 
                 {isAdmin && edit && (
                   <TableCell>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       <StyledEditButton variant='contained' onClick={() => openModelHandler(row)}>
                         Edit
                       </StyledEditButton>
+                      {row.team && (
+                        <StyledUnsoldButton variant='contained' onClick={() => unsoldHandler(row)}>
+                          Unsold
+                        </StyledUnsoldButton>
+                      )}
                       <StyledDeleteButton variant='contained' onClick={() => deleteHandler(row)}>
                         Delete
                       </StyledDeleteButton>
@@ -351,14 +401,14 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
         aria-labelledby='customized-dialog-title'
         open={!!updateModel}
       >
-        <DialogTitle 
-          sx={{ 
-            m: 0, 
+        <DialogTitle
+          sx={{
+            m: 0,
             p: 3,
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: '#fff',
             fontWeight: 600
-          }} 
+          }}
           id='customized-dialog-title'
         >
           Update User
@@ -381,59 +431,59 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
         <DialogContent dividers sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <StyledTextField
-              id='Name'
-              label='Name'
-              variant='outlined'
+            id='Name'
+            label='Name'
+            variant='outlined'
               fullWidth
-              value={updateModel?.name || ''}
-              onChange={e => setUpdateModel({ ...updateModel, name: e.target.value })}
-            />
+            value={updateModel?.name || ''}
+            onChange={e => setUpdateModel({ ...updateModel, name: e.target.value })}
+          />
             <StyledTextField
-              id='Mobile'
-              label='Mobile'
-              variant='outlined'
+            id='Mobile'
+            label='Mobile'
+            variant='outlined'
               fullWidth
-              value={updateModel?.mobile || ''}
-              onChange={e => setUpdateModel({ ...updateModel, mobile: e.target.value })}
-            />
+            value={updateModel?.mobile || ''}
+            onChange={e => setUpdateModel({ ...updateModel, mobile: e.target.value })}
+          />
             <StyledFormControl fullWidth size='large'>
-              <InputLabel id='demo-select-small-label'>Team</InputLabel>
-              <Select
-                labelId='demo-select-small-label'
-                id='demo-select-small'
-                label='Team'
-                value={updateModel?.team?._id || ''}
-                onChange={e => setUpdateModel({ ...updateModel, team: { ...updateModel.team, _id: e.target.value } })}
-              >
-                <MenuItem value=''>
-                  <em>Please select one</em>
-                </MenuItem>
-                {teams.map((el, inx) => {
-                  return (
-                    <MenuItem key={inx} value={el._id}>
-                      {el.name}
-                    </MenuItem>
-                  )
-                })}
-              </Select>
+            <InputLabel id='demo-select-small-label'>Team</InputLabel>
+            <Select
+              labelId='demo-select-small-label'
+              id='demo-select-small'
+              label='Team'
+              value={updateModel?.team?._id || ''}
+              onChange={e => setUpdateModel({ ...updateModel, team: { ...updateModel.team, _id: e.target.value } })}
+            >
+              <MenuItem value=''>
+                <em>Please select one</em>
+              </MenuItem>
+              {teams.map((el, inx) => {
+                return (
+                  <MenuItem key={inx} value={el._id}>
+                    {el.name}
+                  </MenuItem>
+                )
+              })}
+            </Select>
             </StyledFormControl>
             <StyledFormControl fullWidth size='large'>
-              <InputLabel id='demo-select-small-label-type'>Type</InputLabel>
-              <Select
-                labelId='demo-select-small-label-type'
-                id='demo-select-small'
-                value={updateModel?.type || ''}
-                label='Type'
-                onChange={e => setUpdateModel({ ...updateModel, type: e.target.value })}
-              >
-                <MenuItem value=''>
-                  <em>Please select one</em>
-                </MenuItem>
-                <MenuItem value='Owner'>Owner</MenuItem>
-                <MenuItem value='Captain'>Captain</MenuItem>
-                <MenuItem value='IconPlayer'>Icon Player</MenuItem>
-                <MenuItem value='Player'>Player</MenuItem>
-              </Select>
+            <InputLabel id='demo-select-small-label-type'>Type</InputLabel>
+            <Select
+              labelId='demo-select-small-label-type'
+              id='demo-select-small'
+              value={updateModel?.type || ''}
+              label='Type'
+              onChange={e => setUpdateModel({ ...updateModel, type: e.target.value })}
+            >
+              <MenuItem value=''>
+                <em>Please select one</em>
+              </MenuItem>
+              <MenuItem value='Owner'>Owner</MenuItem>
+              <MenuItem value='Captain'>Captain</MenuItem>
+              <MenuItem value='IconPlayer'>Icon Player</MenuItem>
+              <MenuItem value='Player'>Player</MenuItem>
+            </Select>
             </StyledFormControl>
             <StyledTextField
               id='TShirtName'

@@ -67,10 +67,13 @@ const Settings = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [bannerFile, setBannerFile] = useState(null)
+  const [bannerPreview, setBannerPreview] = useState(null)
+  const [bannerUploading, setBannerUploading] = useState(false)
 
   useEffect(() => {
     checkAdminAndFetchSettings()
-    
+
     // Setup socket connection
     const token = localStorage.getItem('authorization') || ''
     socket = io(process.env.API_BASE_URL, {
@@ -126,7 +129,51 @@ const Settings = () => {
     }
   }
 
-  const updateSettinghandler = async () => {
+  const handleBannerSelect = (e) => {
+    const file = e.target.files?.[0]
+    if (file && file.type.startsWith('image/')) {
+      setBannerFile(file)
+      setBannerPreview(URL.createObjectURL(file))
+    }
+    e.target.value = ''
+  }
+
+  const uploadBannerHandler = async () => {
+    if (!bannerFile) return
+    try {
+      setBannerUploading(true)
+      const token = localStorage.getItem('authorization')
+      if (!token) {
+        setError('Please login to upload banner')
+        return
+      }
+      const formData = new FormData()
+      formData.append('banner', bannerFile)
+      const response = await axios.post(
+        `${process.env.API_BASE_URL}/api/v1/auction-setting/banner`,
+        formData,
+        {
+          headers: {
+            authorization: token,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      )
+      if (response.data?.data) {
+        setAuctionSettingData(response.data.data)
+        setBannerFile(null)
+        setBannerPreview(null)
+        setSuccess('Banner uploaded successfully')
+        if (socket) socket.emit('updateSetting', { data: response.data.data })
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to upload banner')
+    } finally {
+      setBannerUploading(false)
+    }
+  }
+
+  const updateSettinghandler = async (nextData) => {
     try {
       const token = localStorage.getItem('authorization')
       if (!token) {
@@ -134,17 +181,22 @@ const Settings = () => {
         return
       }
 
+      const dataToSave = nextData != null ? nextData : auctionSettingData
+
       await axios.patch(
         `${process.env.API_BASE_URL}/api/v1/auction-setting`,
-        auctionSettingData,
+        dataToSave,
         { headers: { authorization: token } }
       )
-      
-      // Also emit via socket for real-time updates
-      if (socket) {
-        socket.emit('updateSetting', { data: auctionSettingData })
+
+      if (nextData != null) {
+        setAuctionSettingData(nextData)
       }
-      
+
+      if (socket) {
+        socket.emit('updateSetting', { data: dataToSave })
+      }
+
       setSuccess('Settings updated successfully')
       setTimeout(() => setSuccess(''), 3000)
     } catch (error) {
@@ -212,15 +264,15 @@ const Settings = () => {
 
   return (
     <Box sx={{ p: 4 }}>
-      <Typography 
-        variant='h4' 
-        sx={{ 
-          mb: 4, 
-          fontWeight: 700, 
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-          WebkitBackgroundClip: 'text', 
-          WebkitTextFillColor: 'transparent', 
-          backgroundClip: 'text' 
+      <Typography
+        variant='h4'
+        sx={{
+          mb: 4,
+          fontWeight: 700,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
         }}
       >
         Auction Settings
@@ -300,6 +352,64 @@ const Settings = () => {
 
             <Grid item xs={12}>
               <Typography variant='h6' sx={{ mb: 3, fontWeight: 600, color: 'primary.main' }}>
+                Banner Image
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 400 }}>
+                {(auctionSettingData?.bannerImage || bannerPreview) && (
+                  <Box
+                    component='img'
+                    src={
+                      bannerPreview ||
+                      `${process.env.API_BASE_URL}/banner/${auctionSettingData?.bannerImage}`
+                    }
+                    alt='Banner'
+                    sx={{
+                      maxHeight: 180,
+                      width: '100%',
+                      objectFit: 'contain',
+                      borderRadius: 2,
+                      border: '1px solid',
+                      borderColor: 'divider'
+                    }}
+                  />
+                )}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                  <Button
+                    variant='outlined'
+                    component='label'
+                    sx={{ borderRadius: '12px', textTransform: 'none' }}
+                  >
+                    {auctionSettingData?.bannerImage && !bannerFile ? 'Change Banner' : 'Choose Image'}
+                    <input
+                      type='file'
+                      hidden
+                      accept='image/*'
+                      onChange={handleBannerSelect}
+                    />
+                  </Button>
+                  {bannerFile && (
+                    <StyledButton
+                      variant='contained'
+                      onClick={uploadBannerHandler}
+                      disabled={bannerUploading}
+                      sx={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        '&:hover': { background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)' }
+                      }}
+                    >
+                      {bannerUploading ? 'Uploading...' : 'Upload Banner'}
+                    </StyledButton>
+                  )}
+                </Box>
+              </Box>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Typography variant='h6' sx={{ mb: 3, fontWeight: 600, color: 'primary.main' }}>
                 Registration Settings
               </Typography>
             </Grid>
@@ -310,8 +420,9 @@ const Settings = () => {
                   <Checkbox
                     checked={auctionSettingData?.registrationActive || false}
                     onChange={e => {
-                      setAuctionSettingData({ ...auctionSettingData, registrationActive: e.target.checked })
-                      updateSettinghandler()
+                      const next = { ...auctionSettingData, registrationActive: e.target.checked }
+                      setAuctionSettingData(next)
+                      updateSettinghandler(next)
                     }}
                     sx={{
                       '&.Mui-checked': {
@@ -375,14 +486,15 @@ const Settings = () => {
                   <Checkbox
                     checked={auctionSettingData?.registrationFieldsRequired?.photoRequired !== false}
                     onChange={e => {
-                      setAuctionSettingData({
+                      const next = {
                         ...auctionSettingData,
                         registrationFieldsRequired: {
                           ...auctionSettingData?.registrationFieldsRequired,
                           photoRequired: e.target.checked
                         }
-                      })
-                      updateSettinghandler()
+                      }
+                      setAuctionSettingData(next)
+                      updateSettinghandler(next)
                     }}
                     sx={{
                       '&.Mui-checked': {
@@ -401,14 +513,15 @@ const Settings = () => {
                   <Checkbox
                     checked={auctionSettingData?.registrationFieldsRequired?.nameRequired !== false}
                     onChange={e => {
-                      setAuctionSettingData({
+                      const next = {
                         ...auctionSettingData,
                         registrationFieldsRequired: {
                           ...auctionSettingData?.registrationFieldsRequired,
                           nameRequired: e.target.checked
                         }
-                      })
-                      updateSettinghandler()
+                      }
+                      setAuctionSettingData(next)
+                      updateSettinghandler(next)
                     }}
                     sx={{
                       '&.Mui-checked': {
@@ -427,14 +540,15 @@ const Settings = () => {
                   <Checkbox
                     checked={auctionSettingData?.registrationFieldsRequired?.mobileRequired !== false}
                     onChange={e => {
-                      setAuctionSettingData({
+                      const next = {
                         ...auctionSettingData,
                         registrationFieldsRequired: {
                           ...auctionSettingData?.registrationFieldsRequired,
                           mobileRequired: e.target.checked
                         }
-                      })
-                      updateSettinghandler()
+                      }
+                      setAuctionSettingData(next)
+                      updateSettinghandler(next)
                     }}
                     sx={{
                       '&.Mui-checked': {
@@ -453,14 +567,15 @@ const Settings = () => {
                   <Checkbox
                     checked={auctionSettingData?.registrationFieldsRequired?.tshirtNameRequired || false}
                     onChange={e => {
-                      setAuctionSettingData({
+                      const next = {
                         ...auctionSettingData,
                         registrationFieldsRequired: {
                           ...auctionSettingData?.registrationFieldsRequired,
                           tshirtNameRequired: e.target.checked
                         }
-                      })
-                      updateSettinghandler()
+                      }
+                      setAuctionSettingData(next)
+                      updateSettinghandler(next)
                     }}
                     sx={{
                       '&.Mui-checked': {
@@ -479,14 +594,15 @@ const Settings = () => {
                   <Checkbox
                     checked={auctionSettingData?.registrationFieldsRequired?.tshirtSizeRequired || false}
                     onChange={e => {
-                      setAuctionSettingData({
+                      const next = {
                         ...auctionSettingData,
                         registrationFieldsRequired: {
                           ...auctionSettingData?.registrationFieldsRequired,
                           tshirtSizeRequired: e.target.checked
                         }
-                      })
-                      updateSettinghandler()
+                      }
+                      setAuctionSettingData(next)
+                      updateSettinghandler(next)
                     }}
                     sx={{
                       '&.Mui-checked': {
@@ -505,14 +621,15 @@ const Settings = () => {
                   <Checkbox
                     checked={auctionSettingData?.registrationFieldsRequired?.tshirtNumberRequired || false}
                     onChange={e => {
-                      setAuctionSettingData({
+                      const next = {
                         ...auctionSettingData,
                         registrationFieldsRequired: {
                           ...auctionSettingData?.registrationFieldsRequired,
                           tshirtNumberRequired: e.target.checked
                         }
-                      })
-                      updateSettinghandler()
+                      }
+                      setAuctionSettingData(next)
+                      updateSettinghandler(next)
                     }}
                     sx={{
                       '&.Mui-checked': {
@@ -531,14 +648,15 @@ const Settings = () => {
                   <Checkbox
                     checked={auctionSettingData?.registrationFieldsRequired?.skillsRequired || false}
                     onChange={e => {
-                      setAuctionSettingData({
+                      const next = {
                         ...auctionSettingData,
                         registrationFieldsRequired: {
                           ...auctionSettingData?.registrationFieldsRequired,
                           skillsRequired: e.target.checked
                         }
-                      })
-                      updateSettinghandler()
+                      }
+                      setAuctionSettingData(next)
+                      updateSettinghandler(next)
                     }}
                     sx={{
                       '&.Mui-checked': {

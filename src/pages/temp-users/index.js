@@ -1,5 +1,5 @@
 // ** React Imports
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
@@ -111,15 +111,12 @@ const TempUsers = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  useEffect(() => {
-    checkAdminAndFetch()
-  }, [])
-
-  const checkAdminAndFetch = async () => {
+  const checkAdminAndFetch = useCallback(async () => {
     try {
       const token = localStorage.getItem('authorization')
       if (!token) {
         router.push('/login')
+
         return
       }
 
@@ -134,11 +131,16 @@ const TempUsers = () => {
       console.log(error)
       router.push('/login')
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    checkAdminAndFetch()
+  }, [checkAdminAndFetch])
 
   const fetchTempUsers = async () => {
     try {
       const token = localStorage.getItem('authorization')
+
       const response = await axios.get(
         `${process.env.API_BASE_URL}/api/v1/temp-user`,
         { headers: { authorization: token } }
@@ -146,6 +148,7 @@ const TempUsers = () => {
       setTempUsers(response.data.data || [])
     } catch (error) {
       console.log(error)
+
       setError('Failed to fetch temp users')
     } finally {
       setLoading(false)

@@ -1,5 +1,5 @@
 // ** React Imports
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
@@ -71,49 +71,10 @@ const Settings = () => {
   const [bannerPreview, setBannerPreview] = useState(null)
   const [bannerUploading, setBannerUploading] = useState(false)
 
-  useEffect(() => {
-    checkAdminAndFetchSettings()
-
-    // Setup socket connection
-    const token = localStorage.getItem('authorization') || ''
-    socket = io(process.env.API_BASE_URL, {
-      transports: ['websocket'],
-      query: {
-        Authorization: token
-      }
-    })
-
-    return () => {
-      if (socket) {
-        socket.disconnect()
-      }
-    }
-  }, [])
-
-  const checkAdminAndFetchSettings = async () => {
-    try {
-      const token = localStorage.getItem('authorization')
-      if (!token) {
-        router.push('/login')
-        return
-      }
-
-      await axios.post(
-        `${process.env.API_BASE_URL}/api/v1/admin/checkadmin`,
-        {},
-        { headers: { authorization: token } }
-      )
-
-      fetchSettings()
-    } catch (error) {
-      console.log(error)
-      router.push('/login')
-    }
-  }
-
   const fetchSettings = async () => {
     try {
       const token = localStorage.getItem('authorization')
+
       const response = await axios.get(
         `${process.env.API_BASE_URL}/api/v1/auction-setting`,
         { headers: { authorization: token } }
@@ -129,12 +90,53 @@ const Settings = () => {
     }
   }
 
+  const checkAdminAndFetchSettings = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('authorization')
+      if (!token) {
+        router.push('/login')
+
+        return
+      }
+
+      await axios.post(
+        `${process.env.API_BASE_URL}/api/v1/admin/checkadmin`,
+        {},
+        { headers: { authorization: token } }
+      )
+
+      fetchSettings()
+    } catch (error) {
+      console.log(error)
+      router.push('/login')
+    }
+  }, [router])
+
+  useEffect(() => {
+    checkAdminAndFetchSettings()
+
+    const token = localStorage.getItem('authorization') || ''
+    socket = io(process.env.API_BASE_URL, {
+      transports: ['websocket'],
+      query: {
+        Authorization: token
+      }
+    })
+
+    return () => {
+      if (socket) {
+        socket.disconnect()
+      }
+    }
+  }, [checkAdminAndFetchSettings])
+
   const handleBannerSelect = (e) => {
     const file = e.target.files?.[0]
     if (file && file.type.startsWith('image/')) {
       setBannerFile(file)
       setBannerPreview(URL.createObjectURL(file))
     }
+
     e.target.value = ''
   }
 
@@ -145,10 +147,13 @@ const Settings = () => {
       const token = localStorage.getItem('authorization')
       if (!token) {
         setError('Please login to upload banner')
+
         return
       }
+
       const formData = new FormData()
       formData.append('banner', bannerFile)
+
       const response = await axios.post(
         `${process.env.API_BASE_URL}/api/v1/auction-setting/banner`,
         formData,
@@ -159,6 +164,7 @@ const Settings = () => {
           }
         }
       )
+
       if (response.data?.data) {
         setAuctionSettingData(response.data.data)
         setBannerFile(null)
@@ -178,6 +184,7 @@ const Settings = () => {
       const token = localStorage.getItem('authorization')
       if (!token) {
         Swal.fire('Error', 'Please login to update settings', 'error')
+
         return
       }
 

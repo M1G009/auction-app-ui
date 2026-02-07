@@ -150,6 +150,10 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
   '&:hover': {
     color: '#fff'
+  },
+  '&:disabled': {
+    color: '#fff',
+    background: "rgba(58, 53, 65, 0.18)"
   }
 }))
 
@@ -336,10 +340,22 @@ const PlayerRegistration = () => {
   }
 
   const handleChange = (field) => (event) => {
-    const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value
+    let value = event.target.type === 'checkbox' ? event.target.checked : event.target.value
+
+    if (event.target.type !== 'checkbox') {
+      if (field === 'name') {
+        value = value.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
+      } else if (field === 'mobile') {
+        value = value.replace(/\D/g, '').slice(0, 10)
+      } else if (field === 'tshirtName') {
+        value = value.toUpperCase()
+      } else if (field === 'tshirtNumber') {
+        value = value.replace(/\D/g, '')
+      }
+    }
+
     const updatedData = { ...formData, [field]: value }
 
-    // If tshirtSize changes and it's not "Other", clear custom size
     if (field === 'tshirtSize' && value !== 'Other') {
       updatedData.tshirtCustomSize = ''
     }
@@ -823,9 +839,10 @@ const PlayerRegistration = () => {
                   required={registrationFieldsRequired.mobileRequired}
                   fullWidth
                   id='mobile'
-                  label='Mobile Number'
+                  label='Mobile Number (10 digits)'
                   value={formData.mobile}
                   onChange={handleChange('mobile')}
+                  inputProps={{ inputMode: 'numeric', maxLength: 10 }}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -892,6 +909,7 @@ const PlayerRegistration = () => {
                   label='T-Shirt Number'
                   value={formData.tshirtNumber}
                   onChange={handleChange('tshirtNumber')}
+                  inputProps={{ inputMode: 'numeric' }}
                 />
               </Grid>
               <Grid item xs={12}>

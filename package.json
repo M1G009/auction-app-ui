@@ -35,9 +35,9 @@
     "themeselection"
   ],
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 7001",
     "build": "next build",
-    "start": "next start --port 4242",
+    "start": "next start -p 7001",
     "export": "next export",
     "lint": "eslint --fix \"src/**/*.{js,jsx}\"",
     "format": "prettier --write \"src/**/*.{js,jsx}\""

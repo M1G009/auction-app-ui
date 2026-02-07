@@ -1031,6 +1031,7 @@ const Dashboard = () => {
       if (!file.type.startsWith('image/')) {
         Swal.fire('Error', 'Please select an image file', 'error')
         e.target.value = ''
+
         return
       }
       setPlayerPhotoFile(file)
@@ -1152,10 +1153,14 @@ const Dashboard = () => {
   if (!isValidAdmin) {
     const formatDate = (d) => {
       if (!d) return '—'
+
       const date = new Date(d)
+
       return date.toLocaleDateString(undefined, { dateStyle: 'medium' })
     }
+
     const registrationActive = auctionSettingData?.registrationActive
+
     const bannerOnly = (
       <Box
         sx={{
@@ -1192,9 +1197,11 @@ const Dashboard = () => {
         )}
       </Box>
     )
+
     if (!registrationActive) {
       return bannerOnly
     }
+
     return (
       <Box
         sx={{

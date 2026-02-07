@@ -344,13 +344,13 @@ const PlayerRegistration = () => {
 
     if (event.target.type !== 'checkbox') {
       if (field === 'name') {
-        value = value.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
+        value = value.toUpperCase().slice(0, 35)
       } else if (field === 'mobile') {
         value = value.replace(/\D/g, '').slice(0, 10)
       } else if (field === 'tshirtName') {
-        value = value.toUpperCase()
+        value = value.toUpperCase().slice(0, 35)
       } else if (field === 'tshirtNumber') {
-        value = value.replace(/\D/g, '')
+        value = value.replace(/\D/g, '').slice(0, 3)
       }
     }
 
@@ -832,6 +832,7 @@ const PlayerRegistration = () => {
                   label='Full Name'
                   value={formData.name}
                   onChange={handleChange('name')}
+                  inputProps={{ maxLength: 35 }}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -853,6 +854,7 @@ const PlayerRegistration = () => {
                   label='T-Shirt Name'
                   value={formData.tshirtName}
                   onChange={handleChange('tshirtName')}
+                  inputProps={{ maxLength: 35 }}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -909,7 +911,7 @@ const PlayerRegistration = () => {
                   label='T-Shirt Number'
                   value={formData.tshirtNumber}
                   onChange={handleChange('tshirtNumber')}
-                  inputProps={{ inputMode: 'numeric' }}
+                  inputProps={{ inputMode: 'numeric', maxLength: 3 }}
                 />
               </Grid>
               <Grid item xs={12}>

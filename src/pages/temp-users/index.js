@@ -221,7 +221,12 @@ const TempUsers = () => {
   }
 
   const handleChange = (field) => (event) => {
-    const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value
+    let value = event.target.type === 'checkbox' ? event.target.checked : event.target.value
+    if (event.target.type !== 'checkbox') {
+      if (field === 'name') value = value.toUpperCase().slice(0, 35)
+      else if (field === 'tshirtName') value = value.toUpperCase().slice(0, 35)
+      else if (field === 'tshirtNumber') value = value.replace(/\D/g, '').slice(0, 3)
+    }
     setFormData({ ...formData, [field]: value })
   }
 
@@ -282,20 +287,20 @@ const TempUsers = () => {
                   <TableRow key={user._id} hover>
                     <TableCell sx={{ py: theme => `${theme.spacing(0.5)} !important` }}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Box 
-                          sx={{ 
-                            height: 80, 
-                            width: 80, 
-                            position: "relative", 
+                        <Box
+                          sx={{
+                            height: 80,
+                            width: 80,
+                            position: "relative",
                             borderRadius: '12px',
                             overflow: 'hidden',
                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
                           }}
                         >
                           {user.photo ? (
-                            <Image 
-                              alt={user.name} 
-                              src={`${process.env.API_BASE_URL}/temp-users/${user.photo}`} 
+                            <Image
+                              alt={user.name}
+                              src={`${process.env.API_BASE_URL}/temp-users/${user.photo}`}
                               layout='fill'
                               objectFit='cover'
                             />
@@ -393,6 +398,7 @@ const TempUsers = () => {
               fullWidth
               value={formData.name || ''}
               onChange={handleChange('name')}
+              inputProps={{ maxLength: 35 }}
             />
             <StyledTextField
               label='Mobile'
@@ -405,6 +411,7 @@ const TempUsers = () => {
               fullWidth
               value={formData.tshirtName || ''}
               onChange={handleChange('tshirtName')}
+              inputProps={{ maxLength: 35 }}
             />
             <StyledTextField
               label='T-Shirt Size'
@@ -417,6 +424,7 @@ const TempUsers = () => {
               fullWidth
               value={formData.tshirtNumber || ''}
               onChange={handleChange('tshirtNumber')}
+              inputProps={{ inputMode: 'numeric', maxLength: 3 }}
             />
             <FormControl fullWidth>
               <InputLabel>Type</InputLabel>

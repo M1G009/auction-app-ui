@@ -2318,7 +2318,8 @@ const Dashboard = () => {
               variant='outlined'
               fullWidth
               value={teamFormData.owner}
-              onChange={e => setTeamFormData({ ...teamFormData, owner: e.target.value })}
+              onChange={e => setTeamFormData({ ...teamFormData, owner: e.target.value.toUpperCase().slice(0, 35) })}
+              inputProps={{ maxLength: 35 }}
             />
             <Box>
               <input
@@ -2408,7 +2409,8 @@ const Dashboard = () => {
               variant='outlined'
               fullWidth
               value={playerFormData.name}
-              onChange={e => setPlayerFormData({ ...playerFormData, name: e.target.value })}
+              onChange={e => setPlayerFormData({ ...playerFormData, name: e.target.value.toUpperCase().slice(0, 35) })}
+              inputProps={{ maxLength: 35 }}
               required
             />
             <TextField
@@ -2529,7 +2531,8 @@ const Dashboard = () => {
               variant='outlined'
               fullWidth
               value={playerFormData.tshirtName}
-              onChange={e => setPlayerFormData({ ...playerFormData, tshirtName: e.target.value })}
+              onChange={e => setPlayerFormData({ ...playerFormData, tshirtName: e.target.value.toUpperCase().slice(0, 35) })}
+              inputProps={{ maxLength: 35 }}
             />
             <TextField
               label='T-Shirt Size'
@@ -2543,7 +2546,11 @@ const Dashboard = () => {
               variant='outlined'
               fullWidth
               value={playerFormData.tshirtNumber}
-              onChange={e => setPlayerFormData({ ...playerFormData, tshirtNumber: e.target.value })}
+              onChange={e => {
+                const v = e.target.value.replace(/\D/g, '').slice(0, 3)
+                setPlayerFormData({ ...playerFormData, tshirtNumber: v })
+              }}
+              inputProps={{ inputMode: 'numeric', maxLength: 3 }}
             />
           </Box>
         </DialogContent>

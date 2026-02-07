@@ -436,7 +436,8 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
             variant='outlined'
               fullWidth
             value={updateModel?.name || ''}
-            onChange={e => setUpdateModel({ ...updateModel, name: e.target.value })}
+            onChange={e => setUpdateModel({ ...updateModel, name: e.target.value.toUpperCase().slice(0, 35) })}
+            inputProps={{ maxLength: 35 }}
           />
             <StyledTextField
             id='Mobile'
@@ -491,7 +492,8 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
               variant='outlined'
               fullWidth
               value={updateModel?.tshirtName || ''}
-              onChange={e => setUpdateModel({ ...updateModel, tshirtName: e.target.value })}
+              onChange={e => setUpdateModel({ ...updateModel, tshirtName: e.target.value.toUpperCase().slice(0, 35) })}
+              inputProps={{ maxLength: 35 }}
             />
             <StyledTextField
               id='TShirtSize'
@@ -507,7 +509,11 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
               variant='outlined'
               fullWidth
               value={updateModel?.tshirtNumber || ''}
-              onChange={e => setUpdateModel({ ...updateModel, tshirtNumber: e.target.value })}
+              onChange={e => {
+                const v = e.target.value.replace(/\D/g, '').slice(0, 3)
+                setUpdateModel({ ...updateModel, tshirtNumber: v })
+              }}
+              inputProps={{ inputMode: 'numeric', maxLength: 3 }}
             />
             <StyledTextField
               id='FinalPrice'

@@ -6,6 +6,7 @@ dotenv.config()
 module.exports = {
   trailingSlash: true,
   reactStrictMode: false,
+  swcMinify: false,
   output: 'export', // Forces Next.js to generate static files
   experimental: {
     esmExternals: false,

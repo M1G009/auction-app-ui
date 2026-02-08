@@ -264,6 +264,7 @@ const TempUsers = () => {
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell>No</TableCell>
                 <TableCell>Photo</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell>Mobile</TableCell>
@@ -281,13 +282,14 @@ const TempUsers = () => {
             <TableBody>
               {tempUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={12} align='center'>
+                  <TableCell colSpan={13} align='center'>
                     <Typography sx={{ py: 4 }}>No pending registrations</Typography>
                   </TableCell>
                 </TableRow>
               ) : (
-                tempUsers.map((user) => (
+                tempUsers.map((user, index) => (
                   <TableRow key={user._id} hover>
+                    <TableCell>{index + 1}</TableCell>
                     <TableCell sx={{ py: theme => `${theme.spacing(0.5)} !important` }}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Box

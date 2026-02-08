@@ -188,7 +188,28 @@ const Settings = () => {
         return
       }
 
-      const dataToSave = nextData != null ? nextData : auctionSettingData
+      const isEvent = nextData && typeof nextData === 'object' && 'target' in nextData
+      const raw = (nextData != null && !isEvent) ? nextData : auctionSettingData
+
+      const dataToSave = {
+        auctionName: raw?.auctionName ?? 'Cricket League',
+        maxPlayersPerteam: Number(raw?.maxPlayersPerteam) || 0,
+        reservePlayersPerTeam: Number(raw?.reservePlayersPerTeam) || 0,
+        startBid: Number(raw?.startBid) || 1,
+        registrationActive: Boolean(raw?.registrationActive),
+        registrationStartDate: raw?.registrationStartDate || null,
+        registrationEndDate: raw?.registrationEndDate || null,
+        bannerImage: raw?.bannerImage || undefined,
+        registrationFieldsRequired: {
+          photoRequired: raw?.registrationFieldsRequired?.photoRequired !== false,
+          nameRequired: raw?.registrationFieldsRequired?.nameRequired !== false,
+          mobileRequired: raw?.registrationFieldsRequired?.mobileRequired !== false,
+          tshirtNameRequired: Boolean(raw?.registrationFieldsRequired?.tshirtNameRequired),
+          tshirtSizeRequired: Boolean(raw?.registrationFieldsRequired?.tshirtSizeRequired),
+          tshirtNumberRequired: Boolean(raw?.registrationFieldsRequired?.tshirtNumberRequired),
+          skillsRequired: Boolean(raw?.registrationFieldsRequired?.skillsRequired),
+        },
+      }
 
       await axios.patch(
         `${process.env.API_BASE_URL}/api/v1/auction-setting`,
@@ -196,9 +217,7 @@ const Settings = () => {
         { headers: { authorization: token } }
       )
 
-      if (nextData != null) {
-        setAuctionSettingData(nextData)
-      }
+      setAuctionSettingData(dataToSave)
 
       if (socket) {
         socket.emit('updateSetting', { data: dataToSave })
@@ -313,7 +332,7 @@ const Settings = () => {
                 variant='outlined'
                 fullWidth
                 onChange={e => setAuctionSettingData({ ...auctionSettingData, auctionName: e.target.value })}
-                onBlur={updateSettinghandler}
+                onBlur={() => updateSettinghandler()}
               />
             </Grid>
 
@@ -325,7 +344,7 @@ const Settings = () => {
                 variant='outlined'
                 fullWidth
                 onChange={e => setAuctionSettingData({ ...auctionSettingData, maxPlayersPerteam: e.target.value })}
-                onBlur={updateSettinghandler}
+                onBlur={() => updateSettinghandler()}
               />
             </Grid>
 
@@ -337,7 +356,7 @@ const Settings = () => {
                 variant='outlined'
                 fullWidth
                 onChange={e => setAuctionSettingData({ ...auctionSettingData, reservePlayersPerTeam: e.target.value })}
-                onBlur={updateSettinghandler}
+                onBlur={() => updateSettinghandler()}
               />
             </Grid>
 
@@ -349,7 +368,7 @@ const Settings = () => {
                 variant='outlined'
                 fullWidth
                 onChange={e => setAuctionSettingData({ ...auctionSettingData, startBid: e.target.value })}
-                onBlur={updateSettinghandler}
+                onBlur={() => updateSettinghandler()}
               />
             </Grid>
 
@@ -454,7 +473,7 @@ const Settings = () => {
                   const dateValue = e.target.value ? new Date(e.target.value).toISOString() : null
                   setAuctionSettingData({ ...auctionSettingData, registrationStartDate: dateValue })
                 }}
-                onBlur={updateSettinghandler}
+                onBlur={() => updateSettinghandler()}
               />
             </Grid>
 
@@ -470,7 +489,7 @@ const Settings = () => {
                   const dateValue = e.target.value ? new Date(e.target.value).toISOString() : null
                   setAuctionSettingData({ ...auctionSettingData, registrationEndDate: dateValue })
                 }}
-                onBlur={updateSettinghandler}
+                onBlur={() => updateSettinghandler()}
               />
             </Grid>
 

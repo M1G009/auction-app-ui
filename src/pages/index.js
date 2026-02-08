@@ -230,8 +230,8 @@ const TeamButton = styled(Button)(({ theme, $isactive, $isdisabled }) => ({
   background: $isdisabled
     ? 'linear-gradient(135deg, #4d4d4d 0%, #3d3d3d 100%)'
     : $isactive
-      ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      : 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    : 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
   backdropFilter: 'blur(10px)',
   border: $isactive ? '3px solid #667eea' : '2px solid rgba(255,255,255,0.2)',
   boxShadow: $isactive ? '0 8px 32px rgba(102, 126, 234, 0.5)' : '0 4px 16px rgba(0, 0, 0, 0.2)',
@@ -252,7 +252,7 @@ const TeamButton = styled(Button)(({ theme, $isactive, $isdisabled }) => ({
     cursor: 'not-allowed',
     '& *': {
       color: '#fff'
-    },
+    }
   }
 }))
 
@@ -433,8 +433,8 @@ const getCroppedImgSquare = async (imageSrc, pixelCrop) => {
     try {
       image = await createImage(imageSrc)
     } catch (err) {
-      console.error('Failed to create image:', err)
-      const errorMessage = err && typeof err === 'object' && err.message ? err.message : err ? String(err) : 'Unknown error'
+      const errorMessage =
+        err && typeof err === 'object' && err.message ? err.message : err ? String(err) : 'Unknown error'
       throw new Error('Failed to load image: ' + errorMessage)
     }
 
@@ -596,10 +596,9 @@ const Dashboard = () => {
     // Fetch settings from API
     const fetchSettings = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.API_BASE_URL}/api/v1/auction-setting?t=${Date.now()}`,
-          { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } }
-        )
+        const response = await axios.get(`${process.env.API_BASE_URL}/api/v1/auction-setting?t=${Date.now()}`, {
+          headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' }
+        })
         if (response.data.data) {
           setAuctionSettingData(response.data.data)
         }
@@ -661,7 +660,7 @@ const Dashboard = () => {
         alert(`${team.name} not have sufficient balance`)
       })
 
-      socket.on('listcomplete', ({ }) => {
+      socket.on('listcomplete', ({}) => {
         setCurrentPlayerBid(null)
       })
     }
@@ -921,7 +920,6 @@ const Dashboard = () => {
     }
   }
 
-
   const handleTeamSave = async () => {
     try {
       const token = localStorage.getItem('authorization')
@@ -1151,7 +1149,7 @@ const Dashboard = () => {
   }
 
   if (!isValidAdmin) {
-    const formatDate = (d) => {
+    const formatDate = d => {
       if (!d) return '—'
 
       const date = new Date(d)
@@ -1184,7 +1182,6 @@ const Dashboard = () => {
             sx={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
               display: 'block'
             }}
           />
@@ -1305,12 +1302,13 @@ const Dashboard = () => {
               sx={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover',
                 display: 'block'
               }}
             />
           ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+            <Box
+              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}
+            >
               <Typography color='text.secondary'>
                 {auctionSettingData?.auctionName || 'Auction'} — Admin login required to view
               </Typography>
@@ -1738,7 +1736,7 @@ const Dashboard = () => {
                       <Grid item xs={4}>
                         <SkillBadge active={currentPlayerBid?.batstyle}>
                           <Box component='span'>🏏</Box>
-                          <Typography variant='body2' sx={{ fontWeight: 600, color: "#fff" }}>
+                          <Typography variant='body2' sx={{ fontWeight: 600, color: '#fff' }}>
                             {currentPlayerBid?.batstyle ? 'Batsman' : 'No'}
                           </Typography>
                         </SkillBadge>
@@ -1748,7 +1746,7 @@ const Dashboard = () => {
                       <Grid item xs={4}>
                         <SkillBadge active={currentPlayerBid?.bowlstyle}>
                           <Box component='span'>⚾</Box>
-                          <Typography variant='body2' sx={{ fontWeight: 600, color: "#fff" }}>
+                          <Typography variant='body2' sx={{ fontWeight: 600, color: '#fff' }}>
                             {currentPlayerBid?.bowlstyle ? 'Bowler' : 'No'}
                           </Typography>
                         </SkillBadge>
@@ -1758,7 +1756,7 @@ const Dashboard = () => {
                       <Grid item xs={4}>
                         <SkillBadge active={currentPlayerBid?.wicketkeeper}>
                           <Box component='span'>🧤</Box>
-                          <Typography variant='body2' sx={{ fontWeight: 600, color: "#fff" }}>
+                          <Typography variant='body2' sx={{ fontWeight: 600, color: '#fff' }}>
                             {currentPlayerBid?.wicketkeeper ? 'WK' : 'No'}
                           </Typography>
                         </SkillBadge>
@@ -1774,11 +1772,7 @@ const Dashboard = () => {
               <Grid item xs={12} md={8} lg={8}>
                 {/* Team Selection for Selling */}
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                  <Grid
-                    container
-                    spacing={2}
-                    sx={{ p: 1 }}
-                  >
+                  <Grid container spacing={2} sx={{ p: 1 }}>
                     {allTeams.map((el, inx) => {
                       let teamPlayers = noOfTeamPlayer(playersData, el)
                       let reservePlayers = teamPlayers?.captain + teamPlayers?.iconPlayer
@@ -1814,7 +1808,7 @@ const Dashboard = () => {
                             $isdisabled={isDisabled}
                             disabled={isDisabled}
                             onClick={() => {
-                              if (currentBidTeam?._id === el._id) return;
+                              if (currentBidTeam?._id === el._id) return
                               if (!isDisabled) raiseBid(el)
                             }}
                             fullWidth
@@ -1866,18 +1860,19 @@ const Dashboard = () => {
                                   fontWeight: 700,
                                   fontSize: { xs: '16px', md: '26px' },
                                   mb: 1,
-                                  display: "-webkit-box",
-                                  WebkitLineClamp: "2",
-                                  WebkitBoxOrient: "vertical",
-                                  overflow: "hidden",
-                                  lineHeight: "1.5em",
-                                  minHeight: "3em"
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: '2',
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden',
+                                  lineHeight: '1.5em',
+                                  minHeight: '3em'
                                 }}
                               >
                                 {el?.name}
                               </Typography>
                               <Typography variant='body2' sx={{ opacity: 0.9, fontSize: '0.85rem', mb: 1 }}>
-                                {reservePlayers + (teamPlayers?.players || 0)} / {auctionSettingData?.maxPlayersPerteam || 11} Players
+                                {reservePlayers + (teamPlayers?.players || 0)} /{' '}
+                                {auctionSettingData?.maxPlayersPerteam || 11} Players
                               </Typography>
                               <Box
                                 sx={{
@@ -1890,14 +1885,17 @@ const Dashboard = () => {
                                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                   <Typography
                                     variant='body2'
-                                    sx={{ mb: 0.75, opacity: 0.8, fontSize: '0.75rem', display: 'block', fontWeight: 600 }}
+                                    sx={{
+                                      mb: 0.75,
+                                      opacity: 0.8,
+                                      fontSize: '0.75rem',
+                                      display: 'block',
+                                      fontWeight: 600
+                                    }}
                                   >
                                     Total Balance
                                   </Typography>
-                                  <Typography
-                                    variant='h6'
-                                    sx={{ fontWeight: 700, fontSize: '30px', mb: 0.75 }}
-                                  >
+                                  <Typography variant='h6' sx={{ fontWeight: 700, fontSize: '30px', mb: 0.75 }}>
                                     {availableBalance + reserveBalance} L
                                   </Typography>
                                 </Box>
@@ -1915,10 +1913,7 @@ const Dashboard = () => {
                                   >
                                     Max Bid
                                   </Typography>
-                                  <Typography
-                                    variant='h6'
-                                    sx={{ fontWeight: 700, color: '#ee5a6f' }}
-                                  >
+                                  <Typography variant='h6' sx={{ fontWeight: 700, color: '#ee5a6f' }}>
                                     {maxBidAmount} L
                                   </Typography>
                                 </Box>
@@ -2162,7 +2157,9 @@ const Dashboard = () => {
               </Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 3, mb: 3, flexWrap: 'wrap' }}
+            >
               {/* Player Image */}
               <Box sx={{ textAlign: 'center' }}>
                 <Avatar
@@ -2180,7 +2177,9 @@ const Dashboard = () => {
                     mb: 1,
                     fontSize: '48px',
                     color: '#ffffff',
-                    background: soldPlayerInfo?.player?.photo ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: soldPlayerInfo?.player?.photo
+                      ? 'transparent'
+                      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     margin: 'auto'
                   }}
                 >
@@ -2205,9 +2204,7 @@ const Dashboard = () => {
               <Box sx={{ textAlign: 'center' }}>
                 <Avatar
                   src={
-                    soldPlayerInfo?.team?.logo
-                      ? `${process.env.API_BASE_URL}/team/${soldPlayerInfo.team.logo}`
-                      : null
+                    soldPlayerInfo?.team?.logo ? `${process.env.API_BASE_URL}/team/${soldPlayerInfo.team.logo}` : null
                   }
                   alt={soldPlayerInfo?.team?.name}
                   sx={{
@@ -2218,7 +2215,9 @@ const Dashboard = () => {
                     mb: 1,
                     fontSize: '48px',
                     color: '#ffffff',
-                    background: soldPlayerInfo?.team?.logo ? 'transparent' : 'linear-gradient(135deg, #ee5a6f 0%, #6AD01F 100%)',
+                    background: soldPlayerInfo?.team?.logo
+                      ? 'transparent'
+                      : 'linear-gradient(135deg, #ee5a6f 0%, #6AD01F 100%)',
                     margin: 'auto'
                   }}
                 >
@@ -2531,7 +2530,9 @@ const Dashboard = () => {
               variant='outlined'
               fullWidth
               value={playerFormData.tshirtName}
-              onChange={e => setPlayerFormData({ ...playerFormData, tshirtName: e.target.value.toUpperCase().slice(0, 35) })}
+              onChange={e =>
+                setPlayerFormData({ ...playerFormData, tshirtName: e.target.value.toUpperCase().slice(0, 35) })
+              }
               inputProps={{ maxLength: 35 }}
             />
             <TextField

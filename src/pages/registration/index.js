@@ -55,7 +55,8 @@ const RegistrationWrapper = styled(Box)(({ theme }) => ({
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.3) 0%, transparent 50%)',
+    background:
+      'radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.3) 0%, transparent 50%)',
     pointerEvents: 'none'
   }
 }))
@@ -153,7 +154,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
   '&:disabled': {
     color: '#fff',
-    background: "rgba(58, 53, 65, 0.18)"
+    background: 'rgba(58, 53, 65, 0.18)'
   }
 }))
 
@@ -207,7 +208,6 @@ const createImage = url =>
     const image = new Image()
     image.addEventListener('load', () => resolve(image))
     image.addEventListener('error', error => reject(error))
-    image.setAttribute('crossOrigin', 'anonymous')
     image.src = url
   })
 
@@ -226,30 +226,41 @@ const getCroppedImg = async (imageSrc, pixelCrop) => {
   ctx.closePath()
   ctx.clip()
 
-  ctx.drawImage(
-    image,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    size,
-    size
-  )
+  ctx.drawImage(image, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, size, size)
 
   ctx.restore()
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       blob => {
-        if (!blob) {
-          reject(new Error('Canvas is empty'))
+        if (blob) {
+          resolve({
+            file: new File([blob], 'photo.png', { type: 'image/png' }),
+            blob
+          })
+        } else {
+          // Fallback for tainted canvas (PRODUCTION FIX)
+          try {
+            const dataUrl = canvas.toDataURL('image/png', 0.92)
+            const byteString = atob(dataUrl.split(',')[1])
+            const mimeString = dataUrl.split(',')[0].split(':')[1].split(';')[0]
+            const ab = new ArrayBuffer(byteString.length)
+            const ia = new Uint8Array(ab)
 
-          return
+            for (let i = 0; i < byteString.length; i++) {
+              ia[i] = byteString.charCodeAt(i)
+            }
+
+            const fallbackBlob = new Blob([ab], { type: mimeString })
+
+            resolve({
+              file: new File([fallbackBlob], 'photo.png', { type: mimeString }),
+              blob: fallbackBlob
+            })
+          } catch (e) {
+            reject(new Error('Image processing failed'))
+          }
         }
-        const file = new File([blob], 'photo.png', { type: 'image/png' })
-        resolve({ file, blob })
       },
       'image/png',
       0.92
@@ -287,7 +298,7 @@ const PlayerRegistration = () => {
     tshirtNameRequired: false,
     tshirtSizeRequired: false,
     tshirtNumberRequired: false,
-    skillsRequired: false,
+    skillsRequired: false
   })
   const [selectedImage, setSelectedImage] = useState(null)
   const [cropDialogOpen, setCropDialogOpen] = useState(false)
@@ -306,6 +317,12 @@ const PlayerRegistration = () => {
   useEffect(() => {
     checkRegistrationStatus()
   }, [])
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview)
+    }
+  }, [imagePreview])
 
   useEffect(() => {
     if (!checkingStatus && !registrationActive) {
@@ -333,13 +350,13 @@ const PlayerRegistration = () => {
     }
   }
 
-  const formatRegDate = (d) => {
+  const formatRegDate = d => {
     if (!d) return '—'
 
     return new Date(d).toLocaleDateString(undefined, { dateStyle: 'medium' })
   }
 
-  const handleChange = (field) => (event) => {
+  const handleChange = field => event => {
     let value = event.target.type === 'checkbox' ? event.target.checked : event.target.value
 
     if (event.target.type !== 'checkbox') {
@@ -376,7 +393,7 @@ const PlayerRegistration = () => {
       setZoom(1)
       setCrop({ x: 0, y: 0 })
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = e => {
         setSelectedImage(e.target.result)
         setCropDialogOpen(true)
       }
@@ -385,7 +402,11 @@ const PlayerRegistration = () => {
   }
 
   const handleCrop = useCallback(async () => {
-    if (!selectedImage || !croppedAreaPixels) return
+    if (!selectedImage || !croppedAreaPixels?.width) {
+      setError('Image not ready to crop')
+
+      return
+    }
     try {
       const { file, blob } = await getCroppedImg(selectedImage, croppedAreaPixels)
       setFormData({ ...formData, photo: file })
@@ -433,14 +454,19 @@ const PlayerRegistration = () => {
     if (registrationFieldsRequired.tshirtNumberRequired && !formData.tshirtNumber.trim()) {
       return false
     }
-    if (registrationFieldsRequired.skillsRequired && !formData.batstyle && !formData.bowlstyle && !formData.wicketkeeper) {
+    if (
+      registrationFieldsRequired.skillsRequired &&
+      !formData.batstyle &&
+      !formData.bowlstyle &&
+      !formData.wicketkeeper
+    ) {
       return false
     }
 
     return true
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault()
     setError('')
     setSuccess('')
@@ -472,15 +498,11 @@ const PlayerRegistration = () => {
         submitData.append('photo', formData.photo)
       }
 
-      const response = await axios.post(
-        `${process.env.API_BASE_URL}/api/v1/temp-user`,
-        submitData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+      const response = await axios.post(`${process.env.API_BASE_URL}/api/v1/temp-user`, submitData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
-      )
+      })
 
       // Store submitted data for success screen
       setSubmittedData({
@@ -523,9 +545,21 @@ const PlayerRegistration = () => {
               Player Registration
             </Typography>
             {registrationActive && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>
-                <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg start: {formatRegDate(registrationStartDate)}</Typography>
-                <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg end: {formatRegDate(registrationEndDate)}</Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  color: 'rgba(255,255,255,0.9)',
+                  fontSize: '0.875rem'
+                }}
+              >
+                <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>
+                  Reg start: {formatRegDate(registrationStartDate)}
+                </Typography>
+                <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>
+                  Reg end: {formatRegDate(registrationEndDate)}
+                </Typography>
               </Box>
             )}
           </Toolbar>
@@ -548,184 +582,204 @@ const PlayerRegistration = () => {
   if (showSuccessScreen && submittedData) {
     return (
       <RegistrationWrapper>
-      <HeaderAppBar position='static'>
-        <Toolbar sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'space-between' }}>
-          <Typography variant='h6' sx={{ fontWeight: 600, color: '#fff' }}>
-            Player Registration
-          </Typography>
-          {registrationActive && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>
-              <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg start: {formatRegDate(registrationStartDate)}</Typography>
-              <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg end: {formatRegDate(registrationEndDate)}</Typography>
-            </Box>
-          )}
-        </Toolbar>
-      </HeaderAppBar>
-        <RegistrationContent>
-        <Card>
-          <CardContent sx={{ padding: theme => `${theme.spacing(6, 5)} !important`, textAlign: 'center' }}>
-            <Box sx={{ mb: 4 }}>
-              <CheckCircleIcon
+        <HeaderAppBar position='static'>
+          <Toolbar sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'space-between' }}>
+            <Typography variant='h6' sx={{ fontWeight: 600, color: '#fff' }}>
+              Player Registration
+            </Typography>
+            {registrationActive && (
+              <Box
                 sx={{
-                  fontSize: 80,
-                  color: 'success.main',
-                  mb: 2,
-                  animation: 'pulse 0.6s ease-in-out'
-                }}
-              />
-              <Typography
-                className='title'
-                sx={{
-                  fontSize: '2.5rem',
-                  mb: 1,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  color: 'rgba(255,255,255,0.9)',
+                  fontSize: '0.875rem'
                 }}
               >
-                Congratulations!
-              </Typography>
-              <Typography variant='h6' sx={{ color: 'text.secondary', mb: 4 }}>
-                Registration Successful
-              </Typography>
-            </Box>
+                <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>
+                  Reg start: {formatRegDate(registrationStartDate)}
+                </Typography>
+                <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>
+                  Reg end: {formatRegDate(registrationEndDate)}
+                </Typography>
+              </Box>
+            )}
+          </Toolbar>
+        </HeaderAppBar>
+        <RegistrationContent>
+          <Card>
+            <CardContent sx={{ padding: theme => `${theme.spacing(6, 5)} !important`, textAlign: 'center' }}>
+              <Box sx={{ mb: 4 }}>
+                <CheckCircleIcon
+                  sx={{
+                    fontSize: 80,
+                    color: 'success.main',
+                    mb: 2,
+                    animation: 'pulse 0.6s ease-in-out'
+                  }}
+                />
+                <Typography
+                  className='title'
+                  sx={{
+                    fontSize: '2.5rem',
+                    mb: 1,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text'
+                  }}
+                >
+                  Congratulations!
+                </Typography>
+                <Typography variant='h6' sx={{ color: 'text.secondary', mb: 4 }}>
+                  Registration Successful
+                </Typography>
+              </Box>
 
-            <Box sx={{
-              background: alpha('#667eea', 0.05),
-              borderRadius: '16px',
-              p: 3,
-              mb: 4,
-              textAlign: 'left'
-            }}>
-              <Typography variant='h6' sx={{ mb: 3, fontWeight: 600, color: 'primary.main' }}>
-                Registration Details
-              </Typography>
+              <Box
+                sx={{
+                  background: alpha('#667eea', 0.05),
+                  borderRadius: '16px',
+                  p: 3,
+                  mb: 4,
+                  textAlign: 'left'
+                }}
+              >
+                <Typography variant='h6' sx={{ mb: 3, fontWeight: 600, color: 'primary.main' }}>
+                  Registration Details
+                </Typography>
 
-              {submittedData.photoPreview && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
-                  <Avatar
-                    src={submittedData.photoPreview}
-                    sx={{
-                      width: 120,
-                      height: 120,
-                      border: `3px solid ${alpha('#667eea', 0.3)}`,
-                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
-                    }}
-                  />
-                </Box>
-              )}
-
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                    Full Name
-                  </Typography>
-                  <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
-                    {submittedData.name}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                    Mobile Number
-                  </Typography>
-                  <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
-                    {submittedData.mobile}
-                  </Typography>
-                </Grid>
-                {submittedData.tshirtName && (
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                      T-Shirt Name
-                    </Typography>
-                    <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
-                      {submittedData.tshirtName}
-                    </Typography>
-                  </Grid>
-                )}
-                {submittedData.finalTshirtSize && (
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                      T-Shirt Size
-                    </Typography>
-                    <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
-                      {submittedData.finalTshirtSize}
-                    </Typography>
-                  </Grid>
-                )}
-                {submittedData.tshirtNumber && (
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                      T-Shirt Number
-                    </Typography>
-                    <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
-                      {submittedData.tshirtNumber}
-                    </Typography>
-                  </Grid>
-                )}
-                <Grid item xs={12}>
-                  <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                    Skills
-                  </Typography>
-                  <Box sx={{ display: 'flex' }}>
-                    {submittedData.batstyle && (
-                      <Box sx={{
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: '20px',
-                        background: alpha('#667eea', 0.1),
-                        color: 'primary.main',
-                        fontWeight: 600
-                      }}>
-                        Batsman
-                      </Box>
-                    )}
-                    {submittedData.bowlstyle && (
-                      <Box sx={{
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: '20px',
-                        background: alpha('#667eea', 0.1),
-                        color: 'primary.main',
-                        fontWeight: 600
-                      }}>
-                        Bowler
-                      </Box>
-                    )}
-                    {submittedData.wicketkeeper && (
-                      <Box sx={{
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: '20px',
-                        background: alpha('#667eea', 0.1),
-                        color: 'primary.main',
-                        fontWeight: 600
-                      }}>
-                        Wicket Keeper
-                      </Box>
-                    )}
-                    {!submittedData.batstyle && !submittedData.bowlstyle && !submittedData.wicketkeeper && (
-                      <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                        No specific skills selected
-                      </Typography>
-                    )}
+                {submittedData.photoPreview && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                    <Avatar
+                      src={submittedData.photoPreview}
+                      sx={{
+                        width: 120,
+                        height: 120,
+                        border: `3px solid ${alpha('#667eea', 0.3)}`,
+                        boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+                      }}
+                    />
                   </Box>
-                </Grid>
-              </Grid>
-            </Box>
+                )}
 
-            <StyledButton
-              variant='contained'
-              size='large'
-              fullWidth
-              onClick={handleRegisterAnother}
-              startIcon={<PersonAddIcon />}
-              sx={{ maxWidth: '400px' }}
-            >
-              Register Another Player
-            </StyledButton>
-          </CardContent>
-        </Card>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                      Full Name
+                    </Typography>
+                    <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
+                      {submittedData.name}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                      Mobile Number
+                    </Typography>
+                    <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
+                      {submittedData.mobile}
+                    </Typography>
+                  </Grid>
+                  {submittedData.tshirtName && (
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                        T-Shirt Name
+                      </Typography>
+                      <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
+                        {submittedData.tshirtName}
+                      </Typography>
+                    </Grid>
+                  )}
+                  {submittedData.finalTshirtSize && (
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                        T-Shirt Size
+                      </Typography>
+                      <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
+                        {submittedData.finalTshirtSize}
+                      </Typography>
+                    </Grid>
+                  )}
+                  {submittedData.tshirtNumber && (
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                        T-Shirt Number
+                      </Typography>
+                      <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
+                        {submittedData.tshirtNumber}
+                      </Typography>
+                    </Grid>
+                  )}
+                  <Grid item xs={12}>
+                    <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                      Skills
+                    </Typography>
+                    <Box sx={{ display: 'flex' }}>
+                      {submittedData.batstyle && (
+                        <Box
+                          sx={{
+                            px: 2,
+                            py: 0.5,
+                            borderRadius: '20px',
+                            background: alpha('#667eea', 0.1),
+                            color: 'primary.main',
+                            fontWeight: 600
+                          }}
+                        >
+                          Batsman
+                        </Box>
+                      )}
+                      {submittedData.bowlstyle && (
+                        <Box
+                          sx={{
+                            px: 2,
+                            py: 0.5,
+                            borderRadius: '20px',
+                            background: alpha('#667eea', 0.1),
+                            color: 'primary.main',
+                            fontWeight: 600
+                          }}
+                        >
+                          Bowler
+                        </Box>
+                      )}
+                      {submittedData.wicketkeeper && (
+                        <Box
+                          sx={{
+                            px: 2,
+                            py: 0.5,
+                            borderRadius: '20px',
+                            background: alpha('#667eea', 0.1),
+                            color: 'primary.main',
+                            fontWeight: 600
+                          }}
+                        >
+                          Wicket Keeper
+                        </Box>
+                      )}
+                      {!submittedData.batstyle && !submittedData.bowlstyle && !submittedData.wicketkeeper && (
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                          No specific skills selected
+                        </Typography>
+                      )}
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <StyledButton
+                variant='contained'
+                size='large'
+                fullWidth
+                onClick={handleRegisterAnother}
+                startIcon={<PersonAddIcon />}
+                sx={{ maxWidth: '400px' }}
+              >
+                Register Another Player
+              </StyledButton>
+            </CardContent>
+          </Card>
         </RegistrationContent>
       </RegistrationWrapper>
     )
@@ -739,251 +793,263 @@ const PlayerRegistration = () => {
             Player Registration
           </Typography>
           {registrationActive && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>
-              <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg start: {formatRegDate(registrationStartDate)}</Typography>
-              <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>Reg end: {formatRegDate(registrationEndDate)}</Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                color: 'rgba(255,255,255,0.9)',
+                fontSize: '0.875rem'
+              }}
+            >
+              <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>
+                Reg start: {formatRegDate(registrationStartDate)}
+              </Typography>
+              <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>
+                Reg end: {formatRegDate(registrationEndDate)}
+              </Typography>
             </Box>
           )}
         </Toolbar>
       </HeaderAppBar>
       <RegistrationContent>
-      <Card>
-        <CardContent sx={{ padding: theme => `${theme.spacing(6, 5)} !important` }}>
-          <TitleBox>
-            <Typography className='title'>Player Registration</Typography>
-            <Typography className='subtitle'>Fill in your details to register for the tournament</Typography>
-          </TitleBox>
+        <Card>
+          <CardContent sx={{ padding: theme => `${theme.spacing(6, 5)} !important` }}>
+            <TitleBox>
+              <Typography className='title'>Player Registration</Typography>
+              <Typography className='subtitle'>Fill in your details to register for the tournament</Typography>
+            </TitleBox>
 
-          <form noValidate autoComplete='off' onSubmit={handleSubmit}>
-            {error && (
-              <Alert severity='error' sx={{ marginBottom: 4, borderRadius: '12px' }}>
-                {error}
-              </Alert>
-            )}
-            {success && (
-              <Alert severity='success' sx={{ marginBottom: 4, borderRadius: '12px' }}>
-                {success}
-              </Alert>
-            )}
+            <form noValidate autoComplete='off' onSubmit={handleSubmit}>
+              {error && (
+                <Alert severity='error' sx={{ marginBottom: 4, borderRadius: '12px' }}>
+                  {error}
+                </Alert>
+              )}
+              {success && (
+                <Alert severity='success' sx={{ marginBottom: 4, borderRadius: '12px' }}>
+                  {success}
+                </Alert>
+              )}
 
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-                  {registrationFieldsRequired.photoRequired && !imagePreview && (
-                    <Typography variant='caption' sx={{ color: 'error.main', mb: 1 }}>
-                      Photo is required
-                    </Typography>
-                  )}
-                  {imagePreview ? (
-                    <Box sx={{ position: 'relative', display: 'inline-block' }}>
-                      <Avatar
-                        src={imagePreview}
-                        sx={{
-                          width: 150,
-                          height: 150,
-                          border: `3px solid ${alpha('#667eea', 0.3)}`,
-                          boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
-                        }}
-                      />
-                      <IconButton
-                        sx={{
-                          position: 'absolute',
-                          top: -8,
-                          right: -8,
-                          backgroundColor: 'error.main',
-                          color: 'white',
-                          '&:hover': { backgroundColor: 'error.dark' }
-                        }}
-                        size='small'
-                        onClick={() => {
-                          setImagePreview(null)
-                          setFormData({ ...formData, photo: null })
-                        }}
-                      >
-                        <CloseIcon />
-                      </IconButton>
-                    </Box>
-                  ) : (
-                    <PhotoUploadBox onClick={() => fileInputRef.current?.click()}>
-                      <CameraAltIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-                      <Typography variant='body1' sx={{ fontWeight: 600, mb: 1 }}>
-                        Upload Photo
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+                    {registrationFieldsRequired.photoRequired && !imagePreview && (
+                      <Typography variant='caption' sx={{ color: 'error.main', mb: 1 }}>
+                        Photo is required
                       </Typography>
-                      <Typography variant='body2' sx={{ color: 'text.secondary' }}>
-                        Click to select or drag and drop
-                      </Typography>
-                    </PhotoUploadBox>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type='file'
-                    accept='image/*'
-                    style={{ display: 'none' }}
-                    onChange={handleFileSelect}
-                  />
-                </Box>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <StyledTextField
-                  required={registrationFieldsRequired.nameRequired}
-                  fullWidth
-                  id='name'
-                  label='Full Name'
-                  value={formData.name}
-                  onChange={handleChange('name')}
-                  inputProps={{ maxLength: 35 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <StyledTextField
-                  required={registrationFieldsRequired.mobileRequired}
-                  fullWidth
-                  id='mobile'
-                  label='Mobile Number (10 digits)'
-                  value={formData.mobile}
-                  onChange={handleChange('mobile')}
-                  inputProps={{ inputMode: 'numeric', maxLength: 10 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <StyledTextField
-                  required={registrationFieldsRequired.tshirtNameRequired}
-                  fullWidth
-                  id='tshirtName'
-                  label='T-Shirt Name'
-                  value={formData.tshirtName}
-                  onChange={handleChange('tshirtName')}
-                  inputProps={{ maxLength: 35 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth required={registrationFieldsRequired.tshirtSizeRequired}>
-                  <InputLabel id='tshirt-size-label'>T-Shirt Size</InputLabel>
-                  <Select
-                    labelId='tshirt-size-label'
-                    id='tshirtSize'
-                    value={formData.tshirtSize}
-                    label='T-Shirt Size'
-                    onChange={handleChange('tshirtSize')}
-                    sx={{
-                      borderRadius: '12px',
-                      backgroundColor: alpha('#667eea', 0.04),
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: alpha('#667eea', 0.2)
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#667eea'
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderWidth: '2px',
-                        borderColor: '#667eea'
-                      }
-                    }}
-                  >
-                    <MenuItem value='S'>S</MenuItem>
-                    <MenuItem value='M'>M</MenuItem>
-                    <MenuItem value='L'>L</MenuItem>
-                    <MenuItem value='XL'>XL</MenuItem>
-                    <MenuItem value='XXL'>XXL</MenuItem>
-                    <MenuItem value='XXXL'>XXXL</MenuItem>
-                    <MenuItem value='4XL'>4XL</MenuItem>
-                    <MenuItem value='Other'>Other</MenuItem>
-                  </Select>
-                </FormControl>
-                {formData.tshirtSize === 'Other' && (
-                  <StyledTextField
-                    fullWidth
-                    id='tshirtCustomSize'
-                    label='Custom T-Shirt Size'
-                    value={formData.tshirtCustomSize}
-                    onChange={handleChange('tshirtCustomSize')}
-                    sx={{ mt: 2 }}
-                    required={registrationFieldsRequired.tshirtSizeRequired}
-                  />
-                )}
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <StyledTextField
-                  required={registrationFieldsRequired.tshirtNumberRequired}
-                  fullWidth
-                  id='tshirtNumber'
-                  label='T-Shirt Number'
-                  value={formData.tshirtNumber}
-                  onChange={handleChange('tshirtNumber')}
-                  inputProps={{ inputMode: 'numeric', maxLength: 3 }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {registrationFieldsRequired.skillsRequired && (
-                    <Typography variant='caption' sx={{ color: 'error.main' }}>
-                      At least one skill is required
-                    </Typography>
-                  )}
-                  <Box sx={{ display: 'flex' }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formData.batstyle}
-                          onChange={handleChange('batstyle')}
+                    )}
+                    {imagePreview ? (
+                      <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                        <Avatar
+                          src={imagePreview}
                           sx={{
-                            '&.Mui-checked': {
-                              color: '#667eea'
-                            }
+                            width: 150,
+                            height: 150,
+                            border: `3px solid ${alpha('#667eea', 0.3)}`,
+                            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
                           }}
                         />
-                      }
-                      label='Batsman'
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formData.bowlstyle}
-                          onChange={handleChange('bowlstyle')}
+                        <IconButton
                           sx={{
-                            '&.Mui-checked': {
-                              color: '#667eea'
-                            }
+                            position: 'absolute',
+                            top: -8,
+                            right: -8,
+                            backgroundColor: 'error.main',
+                            color: 'white',
+                            '&:hover': { backgroundColor: 'error.dark' }
                           }}
-                        />
-                      }
-                      label='Bowler'
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formData.wicketkeeper}
-                          onChange={handleChange('wicketkeeper')}
-                          sx={{
-                            '&.Mui-checked': {
-                              color: '#667eea'
-                            }
+                          size='small'
+                          onClick={() => {
+                            setImagePreview(null)
+                            setFormData({ ...formData, photo: null })
                           }}
-                        />
-                      }
-                      label='Wicket Keeper'
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      </Box>
+                    ) : (
+                      <PhotoUploadBox onClick={() => fileInputRef.current?.click()}>
+                        <CameraAltIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+                        <Typography variant='body1' sx={{ fontWeight: 600, mb: 1 }}>
+                          Upload Photo
+                        </Typography>
+                        <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+                          Click to select or drag and drop
+                        </Typography>
+                      </PhotoUploadBox>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type='file'
+                      accept='image/*'
+                      style={{ display: 'none' }}
+                      onChange={handleFileSelect}
                     />
                   </Box>
-                </Box>
-              </Grid>
-            </Grid>
+                </Grid>
 
-            <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-              <StyledButton
-                type='submit'
-                fullWidth
-                size='large'
-                variant='contained'
-                disabled={loading || !isFormValid()}
-                sx={{ maxWidth: '400px', color: '#fff', '&:hover': { color: '#fff' } }}
-              >
-                {loading ? 'Submitting...' : 'Submit Registration'}
-              </StyledButton>
-            </Box>
-          </form>
-        </CardContent>
-      </Card>
+                <Grid item xs={12} md={6}>
+                  <StyledTextField
+                    required={registrationFieldsRequired.nameRequired}
+                    fullWidth
+                    id='name'
+                    label='Full Name'
+                    value={formData.name}
+                    onChange={handleChange('name')}
+                    inputProps={{ maxLength: 35 }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <StyledTextField
+                    required={registrationFieldsRequired.mobileRequired}
+                    fullWidth
+                    id='mobile'
+                    label='Mobile Number (10 digits)'
+                    value={formData.mobile}
+                    onChange={handleChange('mobile')}
+                    inputProps={{ inputMode: 'numeric', maxLength: 10 }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <StyledTextField
+                    required={registrationFieldsRequired.tshirtNameRequired}
+                    fullWidth
+                    id='tshirtName'
+                    label='T-Shirt Name'
+                    value={formData.tshirtName}
+                    onChange={handleChange('tshirtName')}
+                    inputProps={{ maxLength: 35 }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth required={registrationFieldsRequired.tshirtSizeRequired}>
+                    <InputLabel id='tshirt-size-label'>T-Shirt Size</InputLabel>
+                    <Select
+                      labelId='tshirt-size-label'
+                      id='tshirtSize'
+                      value={formData.tshirtSize}
+                      label='T-Shirt Size'
+                      onChange={handleChange('tshirtSize')}
+                      sx={{
+                        borderRadius: '12px',
+                        backgroundColor: alpha('#667eea', 0.04),
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: alpha('#667eea', 0.2)
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#667eea'
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderWidth: '2px',
+                          borderColor: '#667eea'
+                        }
+                      }}
+                    >
+                      <MenuItem value='S'>S</MenuItem>
+                      <MenuItem value='M'>M</MenuItem>
+                      <MenuItem value='L'>L</MenuItem>
+                      <MenuItem value='XL'>XL</MenuItem>
+                      <MenuItem value='XXL'>XXL</MenuItem>
+                      <MenuItem value='XXXL'>XXXL</MenuItem>
+                      <MenuItem value='4XL'>4XL</MenuItem>
+                      <MenuItem value='Other'>Other</MenuItem>
+                    </Select>
+                  </FormControl>
+                  {formData.tshirtSize === 'Other' && (
+                    <StyledTextField
+                      fullWidth
+                      id='tshirtCustomSize'
+                      label='Custom T-Shirt Size'
+                      value={formData.tshirtCustomSize}
+                      onChange={handleChange('tshirtCustomSize')}
+                      sx={{ mt: 2 }}
+                      required={registrationFieldsRequired.tshirtSizeRequired}
+                    />
+                  )}
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <StyledTextField
+                    required={registrationFieldsRequired.tshirtNumberRequired}
+                    fullWidth
+                    id='tshirtNumber'
+                    label='T-Shirt Number'
+                    value={formData.tshirtNumber}
+                    onChange={handleChange('tshirtNumber')}
+                    inputProps={{ inputMode: 'numeric', maxLength: 3 }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {registrationFieldsRequired.skillsRequired && (
+                      <Typography variant='caption' sx={{ color: 'error.main' }}>
+                        At least one skill is required
+                      </Typography>
+                    )}
+                    <Box sx={{ display: 'flex' }}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={formData.batstyle}
+                            onChange={handleChange('batstyle')}
+                            sx={{
+                              '&.Mui-checked': {
+                                color: '#667eea'
+                              }
+                            }}
+                          />
+                        }
+                        label='Batsman'
+                      />
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={formData.bowlstyle}
+                            onChange={handleChange('bowlstyle')}
+                            sx={{
+                              '&.Mui-checked': {
+                                color: '#667eea'
+                              }
+                            }}
+                          />
+                        }
+                        label='Bowler'
+                      />
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={formData.wicketkeeper}
+                            onChange={handleChange('wicketkeeper')}
+                            sx={{
+                              '&.Mui-checked': {
+                                color: '#667eea'
+                              }
+                            }}
+                          />
+                        }
+                        label='Wicket Keeper'
+                      />
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+                <StyledButton
+                  type='submit'
+                  fullWidth
+                  size='large'
+                  variant='contained'
+                  disabled={loading || !isFormValid()}
+                  sx={{ maxWidth: '400px', color: '#fff', '&:hover': { color: '#fff' } }}
+                >
+                  {loading ? 'Submitting...' : 'Submit Registration'}
+                </StyledButton>
+              </Box>
+            </form>
+          </CardContent>
+        </Card>
       </RegistrationContent>
       <Dialog
         open={cropDialogOpen}
@@ -1045,13 +1111,7 @@ const PlayerRegistration = () => {
             <Typography variant='body2' sx={{ mb: 1, fontWeight: 600 }}>
               Zoom
             </Typography>
-            <Slider
-              min={1}
-              max={3}
-              step={0.1}
-              value={zoom}
-              onChange={(_, value) => setZoom(value)}
-            />
+            <Slider min={1} max={3} step={0.1} value={zoom} onChange={(_, value) => setZoom(value)} />
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
@@ -1088,4 +1148,3 @@ const PlayerRegistration = () => {
 PlayerRegistration.getLayout = page => <BlankLayout>{page}</BlankLayout>
 
 export default PlayerRegistration
-

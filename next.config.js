@@ -31,6 +31,6 @@ module.exports = {
   },
 
   images: {
-    domains: ['localhost', '31.97.206.114', 'auction.workglyph.com']
+    domains: ['localhost', '31.97.206.114', 'auction.workglyph.com', 'auctionapi.workglyph.com']
   }
 }

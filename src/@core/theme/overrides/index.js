@@ -19,6 +19,7 @@ import MuiPopover from './popover'
 import MuiTooltip from './tooltip'
 import MuiBackdrop from './backdrop'
 import MuiSnackbar from './snackbar'
+import MuiSlider from './slider'
 import MuiSwitches from './switches'
 import MuiTimeline from './timeline'
 import MuiAccordion from './accordion'
@@ -45,6 +46,7 @@ const Overrides = theme => {
   const tooltip = MuiTooltip(theme)
   const backdrop = MuiBackdrop(theme)
   const snackbar = MuiSnackbar(theme)
+  const slider = MuiSlider(theme)
   const switches = MuiSwitches(theme)
   const timeline = MuiTimeline(theme)
   const accordion = MuiAccordion(theme)
@@ -71,6 +73,7 @@ const Overrides = theme => {
     backdrop,
     MuiPaper,
     snackbar,
+    slider,
     switches,
     timeline,
     accordion,

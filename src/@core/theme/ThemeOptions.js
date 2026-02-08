@@ -42,11 +42,15 @@ const themeOptions = settings => {
     }
   }
 
+  const validColorKeys = ['primary', 'secondary', 'success', 'error', 'warning', 'info']
+  const primarySource = validColorKeys.includes(themeColor) ? themeConfig.palette[themeColor] : null
+  const primaryPalette = primarySource?.main && /^#|^rgb|^rgba|^hsl|^hsla/.test(String(primarySource.main))
+    ? primarySource
+    : themeConfig.palette.primary
+
   return deepmerge(themeConfig, {
     palette: {
-      primary: {
-        ...themeConfig.palette[themeColor]
-      }
+      primary: { ...primaryPalette }
     }
   })
 }

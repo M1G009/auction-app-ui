@@ -1111,7 +1111,14 @@ const PlayerRegistration = () => {
             <Typography variant='body2' sx={{ mb: 1, fontWeight: 600 }}>
               Zoom
             </Typography>
-            <Slider min={1} max={3} step={0.1} value={zoom} onChange={(_, value) => setZoom(value)} />
+            <Slider
+              min={1}
+              max={3}
+              step={0.1}
+              value={zoom}
+              onChange={(_, value) => setZoom(value)}
+              sx={{ color: 'primary.main' }}
+            />
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>

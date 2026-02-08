@@ -1,7 +1,9 @@
 const DefaultPalette = (mode, themeColor) => {
-  // ** Vars
-  const lightColor = '58, 53, 65'
-  const darkColor = '231, 227, 252'
+  const lightColorRgb = '58, 53, 65'
+  const darkColorRgb = '231, 227, 252'
+  const mainColorRgb = mode === 'light' ? lightColorRgb : darkColorRgb
+  const lightColor = 'rgba(58, 53, 65, 1)'
+  const darkColor = 'rgba(231, 227, 252, 1)'
   const mainColor = mode === 'light' ? lightColor : darkColor
 
   const primaryGradient = () => {
@@ -23,6 +25,7 @@ const DefaultPalette = (mode, themeColor) => {
   return {
     customColors: {
       main: mainColor,
+      mainRgb: mainColorRgb,
       primaryGradient: primaryGradient(),
       tableHeaderBg: mode === 'light' ? '#F9FAFC' : '#3D3759'
     },
@@ -84,22 +87,22 @@ const DefaultPalette = (mode, themeColor) => {
       A700: '#303030'
     },
     text: {
-      primary: `rgba(${mainColor}, 0.87)`,
-      secondary: `rgba(${mainColor}, 0.68)`,
-      disabled: `rgba(${mainColor}, 0.38)`
+      primary: `rgba(${mainColorRgb}, 0.87)`,
+      secondary: `rgba(${mainColorRgb}, 0.68)`,
+      disabled: `rgba(${mainColorRgb}, 0.38)`
     },
-    divider: `rgba(${mainColor}, 0.12)`,
+    divider: `rgba(${mainColorRgb}, 0.12)`,
     background: {
       paper: mode === 'light' ? '#FFF' : '#312D4B',
       default: mode === 'light' ? '#F4F5FA' : '#28243D'
     },
     action: {
-      active: `rgba(${mainColor}, 0.54)`,
-      hover: `rgba(${mainColor}, 0.04)`,
-      selected: `rgba(${mainColor}, 0.08)`,
-      disabled: `rgba(${mainColor}, 0.3)`,
-      disabledBackground: `rgba(${mainColor}, 0.18)`,
-      focus: `rgba(${mainColor}, 0.12)`
+      active: `rgba(${mainColorRgb}, 0.54)`,
+      hover: `rgba(${mainColorRgb}, 0.04)`,
+      selected: `rgba(${mainColorRgb}, 0.08)`,
+      disabled: `rgba(${mainColorRgb}, 0.3)`,
+      disabledBackground: `rgba(${mainColorRgb}, 0.18)`,
+      focus: `rgba(${mainColorRgb}, 0.12)`
     }
   }
 }

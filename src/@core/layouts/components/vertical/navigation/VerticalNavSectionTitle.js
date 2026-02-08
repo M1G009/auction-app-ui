@@ -39,7 +39,7 @@ const VerticalNavSectionTitle = props => {
         py: 1.75,
         color: theme.palette.text.disabled,
         '& .MuiDivider-root:before, & .MuiDivider-root:after, & hr': {
-          borderColor: `rgba(${theme.palette.customColors.main}, 0.12)`
+          borderColor: `rgba(${theme.palette.customColors.mainRgb}, 0.12)`
         }
       }}
     >

@@ -154,7 +154,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
   '&:disabled': {
     color: '#fff',
-    background: 'rgba(58, 53, 65, 0.18)'
+    background: theme.palette.action.disabledBackground
   }
 }))
 

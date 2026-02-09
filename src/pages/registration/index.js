@@ -542,7 +542,7 @@ const PlayerRegistration = () => {
         <HeaderAppBar position='static'>
           <Toolbar sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'space-between' }}>
             <Typography variant='h6' sx={{ fontWeight: 600, color: '#fff' }}>
-              Player Registration
+            પ્લેયર રિજિસ્ટ્રેશન
             </Typography>
             {registrationActive && (
               <Box
@@ -585,7 +585,7 @@ const PlayerRegistration = () => {
         <HeaderAppBar position='static'>
           <Toolbar sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'space-between' }}>
             <Typography variant='h6' sx={{ fontWeight: 600, color: '#fff' }}>
-              Player Registration
+            પ્લેયર રિજિસ્ટ્રેશન
             </Typography>
             {registrationActive && (
               <Box
@@ -667,7 +667,7 @@ const PlayerRegistration = () => {
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                      Full Name
+                      પૂરું નામ
                     </Typography>
                     <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
                       {submittedData.name}
@@ -675,7 +675,7 @@ const PlayerRegistration = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                      Mobile Number
+                      મોબાઈલ નંબર
                     </Typography>
                     <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
                       {submittedData.mobile}
@@ -684,7 +684,7 @@ const PlayerRegistration = () => {
                   {submittedData.tshirtName && (
                     <Grid item xs={12} sm={6}>
                       <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                        T-Shirt Name
+                        ટી-શર્ટ નામ
                       </Typography>
                       <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
                         {submittedData.tshirtName}
@@ -694,7 +694,7 @@ const PlayerRegistration = () => {
                   {submittedData.finalTshirtSize && (
                     <Grid item xs={12} sm={6}>
                       <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                        T-Shirt Size
+                        ટી-શર્ટ સાઈઝ
                       </Typography>
                       <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
                         {submittedData.finalTshirtSize}
@@ -704,7 +704,7 @@ const PlayerRegistration = () => {
                   {submittedData.tshirtNumber && (
                     <Grid item xs={12} sm={6}>
                       <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
-                        T-Shirt Number
+                        ટી-શર્ટ નંબર
                       </Typography>
                       <Typography variant='body1' sx={{ fontWeight: 600, mb: 2 }}>
                         {submittedData.tshirtNumber}
@@ -727,7 +727,7 @@ const PlayerRegistration = () => {
                             fontWeight: 600
                           }}
                         >
-                          Batsman
+                          બેટ્સમેન
                         </Box>
                       )}
                       {submittedData.bowlstyle && (
@@ -741,7 +741,7 @@ const PlayerRegistration = () => {
                             fontWeight: 600
                           }}
                         >
-                          Bowler
+                          બોલર
                         </Box>
                       )}
                       {submittedData.wicketkeeper && (
@@ -755,7 +755,7 @@ const PlayerRegistration = () => {
                             fontWeight: 600
                           }}
                         >
-                          Wicket Keeper
+                          વિક્ટ કીપર
                         </Box>
                       )}
                       {!submittedData.batstyle && !submittedData.bowlstyle && !submittedData.wicketkeeper && (
@@ -790,7 +790,7 @@ const PlayerRegistration = () => {
       <HeaderAppBar position='static'>
         <Toolbar sx={{ flexWrap: 'wrap', gap: 1, justifyContent: 'space-between' }}>
           <Typography variant='h6' sx={{ fontWeight: 600, color: '#fff' }}>
-            Player Registration
+          સારીંગપુર પ્રીમિયર લીગ (SPL-4)
           </Typography>
           {registrationActive && (
             <Box
@@ -816,8 +816,7 @@ const PlayerRegistration = () => {
         <Card>
           <CardContent sx={{ padding: theme => `${theme.spacing(6, 5)} !important` }}>
             <TitleBox>
-              <Typography className='title'>Player Registration</Typography>
-              <Typography className='subtitle'>Fill in your details to register for the tournament</Typography>
+              <Typography className='title'>પ્લેયર રિજિસ્ટ્રેશન</Typography>
             </TitleBox>
 
             <form noValidate autoComplete='off' onSubmit={handleSubmit}>
@@ -835,11 +834,9 @@ const PlayerRegistration = () => {
               <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-                    {registrationFieldsRequired.photoRequired && !imagePreview && (
                       <Typography variant='caption' sx={{ color: 'error.main', mb: 1 }}>
-                        Photo is required
+                      ફોર્મ માં બધી ડિટેલ્સ ભરવી
                       </Typography>
-                    )}
                     {imagePreview ? (
                       <Box sx={{ position: 'relative', display: 'inline-block' }}>
                         <Avatar
@@ -864,6 +861,11 @@ const PlayerRegistration = () => {
                           onClick={() => {
                             setImagePreview(null)
                             setFormData({ ...formData, photo: null })
+                            if (fileInputRef.current) fileInputRef.current.value = ''
+                            setSelectedImage(null)
+                            setCrop({ x: 0, y: 0 })
+                            setZoom(1)
+                            setCroppedAreaPixels(null)
                           }}
                         >
                           <CloseIcon />
@@ -873,7 +875,7 @@ const PlayerRegistration = () => {
                       <PhotoUploadBox onClick={() => fileInputRef.current?.click()}>
                         <CameraAltIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
                         <Typography variant='body1' sx={{ fontWeight: 600, mb: 1 }}>
-                          Upload Photo
+                        ફોટો અપલોડ કરો
                         </Typography>
                         <Typography variant='body2' sx={{ color: 'text.secondary' }}>
                           Click to select or drag and drop
@@ -895,7 +897,7 @@ const PlayerRegistration = () => {
                     required={registrationFieldsRequired.nameRequired}
                     fullWidth
                     id='name'
-                    label='Full Name'
+                    label='પૂરું નામ'
                     value={formData.name}
                     onChange={handleChange('name')}
                     inputProps={{ maxLength: 35 }}
@@ -906,7 +908,7 @@ const PlayerRegistration = () => {
                     required={registrationFieldsRequired.mobileRequired}
                     fullWidth
                     id='mobile'
-                    label='Mobile Number (10 digits)'
+                    label='મોબાઈલ નંબર'
                     value={formData.mobile}
                     onChange={handleChange('mobile')}
                     inputProps={{ inputMode: 'numeric', maxLength: 10 }}
@@ -917,7 +919,7 @@ const PlayerRegistration = () => {
                     required={registrationFieldsRequired.tshirtNameRequired}
                     fullWidth
                     id='tshirtName'
-                    label='T-Shirt Name'
+                    label='ટી-શર્ટ નામ'
                     value={formData.tshirtName}
                     onChange={handleChange('tshirtName')}
                     inputProps={{ maxLength: 35 }}
@@ -925,12 +927,12 @@ const PlayerRegistration = () => {
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth required={registrationFieldsRequired.tshirtSizeRequired}>
-                    <InputLabel id='tshirt-size-label'>T-Shirt Size</InputLabel>
+                    <InputLabel id='tshirt-size-label'>ટી-શર્ટ સાઈઝ</InputLabel>
                     <Select
                       labelId='tshirt-size-label'
                       id='tshirtSize'
                       value={formData.tshirtSize}
-                      label='T-Shirt Size'
+                      label='ટી-શર્ટ સાઈઝ'
                       onChange={handleChange('tshirtSize')}
                       sx={{
                         borderRadius: '12px',
@@ -961,7 +963,7 @@ const PlayerRegistration = () => {
                     <StyledTextField
                       fullWidth
                       id='tshirtCustomSize'
-                      label='Custom T-Shirt Size'
+                      label='Custom ટી-શર્ટ સાઈઝ'
                       value={formData.tshirtCustomSize}
                       onChange={handleChange('tshirtCustomSize')}
                       sx={{ mt: 2 }}
@@ -974,7 +976,7 @@ const PlayerRegistration = () => {
                     required={registrationFieldsRequired.tshirtNumberRequired}
                     fullWidth
                     id='tshirtNumber'
-                    label='T-Shirt Number'
+                    label='ટી-શર્ટ નંબર'
                     value={formData.tshirtNumber}
                     onChange={handleChange('tshirtNumber')}
                     inputProps={{ inputMode: 'numeric', maxLength: 3 }}
@@ -984,7 +986,7 @@ const PlayerRegistration = () => {
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     {registrationFieldsRequired.skillsRequired && (
                       <Typography variant='caption' sx={{ color: 'error.main' }}>
-                        At least one skill is required
+                      ઓલ રાઉન્ડર હોય એમને બેટ્સમેન અને બોલર બંને ઓપ્શન સિલેક્ટ કરવા
                       </Typography>
                     )}
                     <Box sx={{ display: 'flex' }}>
@@ -1000,7 +1002,7 @@ const PlayerRegistration = () => {
                             }}
                           />
                         }
-                        label='Batsman'
+                        label='બેટ્સમેન'
                       />
                       <FormControlLabel
                         control={
@@ -1014,7 +1016,7 @@ const PlayerRegistration = () => {
                             }}
                           />
                         }
-                        label='Bowler'
+                        label='બોલર'
                       />
                       <FormControlLabel
                         control={
@@ -1028,7 +1030,7 @@ const PlayerRegistration = () => {
                             }}
                           />
                         }
-                        label='Wicket Keeper'
+                        label='વિક્ટ કીપર'
                       />
                     </Box>
                   </Box>
@@ -1056,6 +1058,9 @@ const PlayerRegistration = () => {
         onClose={() => {
           setCropDialogOpen(false)
           setSelectedImage(null)
+          setCrop({ x: 0, y: 0 })
+          setZoom(1)
+          setCroppedAreaPixels(null)
         }}
         maxWidth='sm'
         fullWidth
@@ -1081,6 +1086,9 @@ const PlayerRegistration = () => {
           onClick={() => {
             setCropDialogOpen(false)
             setSelectedImage(null)
+            setCrop({ x: 0, y: 0 })
+            setZoom(1)
+            setCroppedAreaPixels(null)
           }}
           sx={{
             position: 'absolute',
@@ -1126,6 +1134,9 @@ const PlayerRegistration = () => {
             onClick={() => {
               setCropDialogOpen(false)
               setSelectedImage(null)
+              setCrop({ x: 0, y: 0 })
+              setZoom(1)
+              setCroppedAreaPixels(null)
             }}
             sx={{ borderRadius: '12px', textTransform: 'none' }}
           >

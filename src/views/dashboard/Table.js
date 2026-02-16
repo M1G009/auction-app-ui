@@ -122,6 +122,24 @@ const StyledUnsoldButton = styled(Button)(({ theme }) => ({
   }
 }))
 
+const StyledMakePendingButton = styled(Button)(({ theme }) => ({
+  borderRadius: '10px',
+  padding: '8px 20px',
+  fontSize: '13px',
+  fontWeight: 600,
+  textTransform: 'none',
+  background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+  color: '#FFFFFF',
+  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+    color: '#FFFFFF',
+    boxShadow: '0 6px 16px rgba(99, 102, 241, 0.4)',
+    transform: 'translateY(-2px)'
+  }
+}))
+
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
     borderRadius: '20px',
@@ -225,7 +243,6 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
             }
           }
         )
-        Swal.fire('Success', 'User updated successfully', 'success')
         getUsers()
         setUpdateModel(null)
       }
@@ -280,7 +297,7 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
         const checkToken = localStorage.getItem('authorization')
         await axios.patch(
           `${process.env.API_BASE_URL}/api/v1/user/${user._id}`,
-          { team: null, finalprice: 0 },
+          { team: null, finalprice: 0, type: 'Unsold' },
           { headers: { authorization: checkToken } }
         )
         Swal.fire('Done', 'Player marked as unsold.', 'success')
@@ -288,6 +305,62 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
       } catch (error) {
         console.log(error)
         Swal.fire('Error', error.response?.data?.message || 'Failed to mark player as unsold', 'error')
+      }
+    }
+  }
+
+  const makePendingHandler = async (user) => {
+    const { isConfirmed } = await Swal.fire({
+      title: 'Make Pending?',
+      text: `Move ${user.name} back to the pending list? They will appear in Pending Registrations.`,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, make pending',
+      cancelButtonText: 'Cancel',
+      icon: 'question'
+    })
+
+    if (isConfirmed) {
+      try {
+        const checkToken = localStorage.getItem('authorization')
+        await axios.post(
+          `${process.env.API_BASE_URL}/api/v1/user/${user._id}/make-pending`,
+          {},
+          { headers: { authorization: checkToken } }
+        )
+        Swal.fire('Done', 'Player moved to pending list.', 'success')
+        if (getUsers) getUsers()
+      } catch (error) {
+        console.log(error)
+        Swal.fire('Error', error.response?.data?.message || 'Failed to move player to pending', 'error')
+      }
+    }
+  }
+
+  const resetHandler = async () => {
+    if (!updateModel?._id || !updateModel?.team) return
+
+    const { isConfirmed } = await Swal.fire({
+      title: 'Reset player?',
+      text: `Unselect ${updateModel.name} from team and set final price to 0?`,
+      showCancelButton: true,
+      confirmButtonText: 'Yes, reset',
+      cancelButtonText: 'Cancel',
+      icon: 'question'
+    })
+    if (isConfirmed) {
+      try {
+        const checkToken = localStorage.getItem('authorization')
+        await axios.patch(
+          `${process.env.API_BASE_URL}/api/v1/user/${updateModel._id}`,
+          { team: null, finalprice: 0 },
+          { headers: { authorization: checkToken } }
+        )
+        Swal.fire('Done', 'Player reset.', 'success')
+        getUsers()
+        setUpdateModel(null)
+      } catch (error) {
+        console.log(error)
+        Swal.fire('Error', error.response?.data?.message || 'Failed to reset player', 'error')
       }
     }
   }
@@ -302,7 +375,8 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
         <Table sx={{ minWidth: 800 }} aria-label='table in dashboard'>
           <TableHead>
             <TableRow>
-              <TableCell>No.</TableCell>
+              <TableCell>Index</TableCell>
+              <TableCell>Player No.</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Team</TableCell>
               <TableCell>Mobile</TableCell>
@@ -321,6 +395,7 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
             {data.map((row, index) => (
               <TableRow hover key={row.name} sx={{ '&:last-of-type td, &:last-of-type th': { border: 0 } }}>
                 <TableCell>{index + 1}</TableCell>
+                <TableCell>{row.playerNumber != null && row.playerNumber !== '' ? row.playerNumber : ''}</TableCell>
                 <TableCell sx={{ py: theme => `${theme.spacing(0.5)} !important` }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {row.photo ? (
@@ -380,6 +455,11 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
                       <StyledEditButton variant='contained' onClick={() => openModelHandler(row)}>
                         Edit
                       </StyledEditButton>
+                      {!row.team && (
+                        <StyledMakePendingButton variant='contained' onClick={() => makePendingHandler(row)}>
+                          Make Pending
+                        </StyledMakePendingButton>
+                      )}
                       {row.team && (
                         <StyledUnsoldButton variant='contained' onClick={() => unsoldHandler(row)}>
                           Unsold
@@ -431,60 +511,60 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
         <DialogContent dividers sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <StyledTextField
-            id='Name'
-            label='Name'
-            variant='outlined'
+              id='Name'
+              label='Name'
+              variant='outlined'
               fullWidth
-            value={updateModel?.name || ''}
-            onChange={e => setUpdateModel({ ...updateModel, name: e.target.value.toUpperCase().slice(0, 35) })}
-            inputProps={{ maxLength: 35 }}
-          />
+              value={updateModel?.name || ''}
+              onChange={e => setUpdateModel({ ...updateModel, name: e.target.value.toUpperCase().slice(0, 35) })}
+              inputProps={{ maxLength: 35 }}
+            />
             <StyledTextField
-            id='Mobile'
-            label='Mobile'
-            variant='outlined'
+              id='Mobile'
+              label='Mobile'
+              variant='outlined'
               fullWidth
-            value={updateModel?.mobile || ''}
-            onChange={e => setUpdateModel({ ...updateModel, mobile: e.target.value })}
-          />
+              value={updateModel?.mobile || ''}
+              onChange={e => setUpdateModel({ ...updateModel, mobile: e.target.value })}
+            />
             <StyledFormControl fullWidth size='large'>
-            <InputLabel id='demo-select-small-label'>Team</InputLabel>
-            <Select
-              labelId='demo-select-small-label'
-              id='demo-select-small'
-              label='Team'
-              value={updateModel?.team?._id || ''}
-              onChange={e => setUpdateModel({ ...updateModel, team: { ...updateModel.team, _id: e.target.value } })}
-            >
-              <MenuItem value=''>
-                <em>Please select one</em>
-              </MenuItem>
-              {teams.map((el, inx) => {
-                return (
-                  <MenuItem key={inx} value={el._id}>
-                    {el.name}
-                  </MenuItem>
-                )
-              })}
-            </Select>
+              <InputLabel id='demo-select-small-label'>Team</InputLabel>
+              <Select
+                labelId='demo-select-small-label'
+                id='demo-select-small'
+                label='Team'
+                value={updateModel?.team?._id || ''}
+                onChange={e => setUpdateModel({ ...updateModel, team: { ...updateModel.team, _id: e.target.value } })}
+              >
+                <MenuItem value=''>
+                  <em>Please select one</em>
+                </MenuItem>
+                {teams.map((el, inx) => {
+                  return (
+                    <MenuItem key={inx} value={el._id}>
+                      {el.name}
+                    </MenuItem>
+                  )
+                })}
+              </Select>
             </StyledFormControl>
             <StyledFormControl fullWidth size='large'>
-            <InputLabel id='demo-select-small-label-type'>Type</InputLabel>
-            <Select
-              labelId='demo-select-small-label-type'
-              id='demo-select-small'
-              value={updateModel?.type || ''}
-              label='Type'
-              onChange={e => setUpdateModel({ ...updateModel, type: e.target.value })}
-            >
-              <MenuItem value=''>
-                <em>Please select one</em>
-              </MenuItem>
-              <MenuItem value='Owner'>Owner</MenuItem>
-              <MenuItem value='Captain'>Captain</MenuItem>
-              <MenuItem value='IconPlayer'>Icon Player</MenuItem>
-              <MenuItem value='Player'>Player</MenuItem>
-            </Select>
+              <InputLabel id='demo-select-small-label-type'>Type</InputLabel>
+              <Select
+                labelId='demo-select-small-label-type'
+                id='demo-select-small'
+                value={updateModel?.type || ''}
+                label='Type'
+                onChange={e => setUpdateModel({ ...updateModel, type: e.target.value })}
+              >
+                <MenuItem value=''>
+                  <em>Please select one</em>
+                </MenuItem>
+                <MenuItem value='Owner'>Owner</MenuItem>
+                <MenuItem value='Captain'>Captain</MenuItem>
+                <MenuItem value='IconPlayer'>Icon Player</MenuItem>
+                <MenuItem value='Player'>Player</MenuItem>
+              </Select>
             </StyledFormControl>
             <StyledTextField
               id='TShirtName'
@@ -529,6 +609,13 @@ const DashboardTable = ({ data, teams = [], getUsers = null, edit }) => {
         <DialogActions sx={{ p: 3 }}>
           <Button onClick={() => setUpdateModel(null)} sx={{ borderRadius: '12px', textTransform: 'none' }}>
             Cancel
+          </Button>
+          <Button
+            onClick={resetHandler}
+            disabled={!updateModel?.team}
+            sx={{ borderRadius: '12px', textTransform: 'none' }}
+          >
+            Reset
           </Button>
           <StyledSaveButton autoFocus onClick={updateHandler}>
             Save changes

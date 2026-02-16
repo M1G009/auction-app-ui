@@ -280,6 +280,22 @@ const Settings = () => {
     }
   }
 
+  const resetPlayerNumbersHandler = async () => {
+    const { isConfirmed } = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'This will renumber all players from 1 to N in the database',
+      showCancelButton: true,
+      confirmButtonText: 'Yes',
+      cancelButtonText: 'No',
+      icon: 'warning'
+    })
+
+    if (isConfirmed && socket) {
+      socket.emit('resetPlayerNumbersHandler', {})
+      Swal.fire('Success', 'Player numbers reset successfully', 'success')
+    }
+  }
+
   if (loading) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
@@ -750,6 +766,22 @@ const Settings = () => {
                 onClick={resetIconPlayersHandler}
               >
                 Reset Icon Players
+              </StyledButton>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <StyledButton
+                fullWidth
+                sx={{
+                  background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%)'
+                  }
+                }}
+                variant='contained'
+                onClick={resetPlayerNumbersHandler}
+              >
+                Reset Player Numbers
               </StyledButton>
             </Grid>
           </Grid>

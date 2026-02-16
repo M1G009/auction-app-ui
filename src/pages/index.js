@@ -1049,10 +1049,12 @@ const Dashboard = () => {
     doc.setFontSize(10)
     teams.forEach((team, teamIdx) => {
       const typeOrder = ['Captain', 'IconPlayer', 'Player', 'Unsold']
+
       const teamPlayers = getTeamPlayers(team).sort((a, b) => {
         const ai = typeOrder.indexOf(a.type || 'Player')
         const bi = typeOrder.indexOf(b.type || 'Player')
         if (ai !== bi) return ai - bi
+
         return (a.playerNumber || 0) - (b.playerNumber || 0)
       })
       if (y > margin && y + headerH + rowH * (teamPlayers.length + 1) > pageH - margin) {

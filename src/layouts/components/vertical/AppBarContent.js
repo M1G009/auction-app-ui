@@ -22,8 +22,8 @@ import axios from 'axios'
 
 const StyledLogoutButton = styled(Button)(({ theme }) => ({
   borderRadius: '12px',
-  padding: '10px 20px',
-  fontSize: '14px',
+  padding: '6px 12px',
+  fontSize: '12px',
   fontWeight: 600,
   textTransform: 'none',
   background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
@@ -43,8 +43,8 @@ const StyledLogoutButton = styled(Button)(({ theme }) => ({
 
 const StyledRegisterButton = styled(Button)(({ theme }) => ({
   borderRadius: '12px',
-  padding: '10px 20px',
-  fontSize: '14px',
+  padding: '6px 12px',
+  fontSize: '12px',
   fontWeight: 600,
   textTransform: 'none',
   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -64,8 +64,8 @@ const StyledRegisterButton = styled(Button)(({ theme }) => ({
 
 const StyledNavButton = styled(Button)(({ theme }) => ({
   borderRadius: '12px',
-  padding: '10px 20px',
-  fontSize: '14px',
+  padding: '6px 12px',
+  fontSize: '12px',
   fontWeight: 600,
   textTransform: 'none',
   marginRight: theme.spacing(1),
@@ -183,8 +183,8 @@ const AppBarContent = props => {
               startIcon={<AccountPlus />}
               sx={{
                 ...(hiddenSm && {
-                  fontSize: '12px',
-                  padding: '8px 16px'
+                  fontSize: '11px',
+                  padding: '6px 10px'
                 })
               }}
             >
@@ -210,11 +210,11 @@ const AppBarContent = props => {
                 className={active ? 'active' : ''}
                 startIcon={<IconTag />}
                 sx={{
-                  ...(hiddenSm && {
-                    fontSize: '12px',
-                    padding: '8px 12px',
-                    marginRight: 0.5
-                  })
+                ...(hiddenSm && {
+                  fontSize: '11px',
+                  padding: '6px 10px',
+                  marginRight: 0.5
+                })
                 }}
           >
                 {item.title}
@@ -231,8 +231,8 @@ const AppBarContent = props => {
           sx={{
             mr: 2,
             ...(hiddenSm && {
-              fontSize: '12px',
-              padding: '8px 16px'
+              fontSize: '11px',
+              padding: '6px 10px'
             })
           }}
         >

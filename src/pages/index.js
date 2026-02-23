@@ -1,14 +1,13 @@
 // ** React and Socket.io Imports
 import React, { forwardRef, useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import IconButton from '@mui/material/IconButton'
 import CloseIcon from '@mui/icons-material/Close'
 import Swal from 'sweetalert2'
 
 import io from 'socket.io-client'
 import axios from 'axios'
-import Lottie from 'lottie-react'
-import { jsPDF } from 'jspdf'
 
 // ** MUI Imports
 import {
@@ -153,126 +152,6 @@ const CropContainer = styled(Box)(({ theme }) => ({
   borderRadius: '16px',
   overflow: 'hidden',
   boxShadow: '0 8px 24px rgba(0,0,0,0.08)'
-}))
-
-// Auction Dialog Styled Components
-const AuctionDialog = styled(Dialog)(({ theme }) => ({
-  '& .MuiDialog-paper': {
-    borderRadius: '24px',
-    maxWidth: '100%',
-    maxHeight: '95vh',
-    overflow: 'hidden',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-  }
-}))
-
-const AuctionHeader = styled(AppBar)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-  padding: theme.spacing(0),
-  position: 'relative',
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-  color: '#fff',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '0px 15px',
-  minHeight: '160px',
-  '& *': {
-    color: '#fff'
-  },
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '4px',
-    background: 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
-  }
-}))
-
-const PlayerCard = styled(Card)(({ theme }) => ({
-  borderRadius: '24px',
-  overflow: 'hidden',
-  boxShadow: 'none',
-  background: 'transparent',
-  backdropFilter: 'blur(10px)',
-  transition: 'all 0.3s ease'
-}))
-
-const BidDisplay = styled(Box)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  borderRadius: '20px',
-  padding: theme.spacing(3, 4),
-  textAlign: 'center',
-  boxShadow: '0 8px 32px rgba(102, 126, 234, 0.4)',
-  position: 'relative',
-  overflow: 'hidden',
-  color: '#ffffff',
-  '& *': {
-    color: '#ffffff'
-  },
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: '-50%',
-    left: '-50%',
-    width: '200%',
-    height: '200%',
-    background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
-    animation: 'pulse 2s ease-in-out infinite'
-  }
-}))
-
-const TeamButton = styled(Button)(({ theme, $isactive, $isdisabled }) => ({
-  borderRadius: '16px',
-  padding: theme.spacing(1),
-  minHeight: '200px',
-  background: $isdisabled
-    ? '#8f8f8f'
-    : $isactive
-      ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      : 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-  backdropFilter: 'blur(10px)',
-  border: $isactive ? '3px solid #667eea' : '2px solid rgba(255,255,255,0.2)',
-  boxShadow: $isactive ? '0 8px 32px rgba(102, 126, 234, 0.5)' : '0 4px 16px rgba(0, 0, 0, 0.2)',
-  transition: 'all 0.3s ease',
-  color: $isactive || $isdisabled ? '#fff' : '#2d2d44',
-  '& *': {
-    color: $isactive || $isdisabled ? '#fff' : '#2d2d44'
-  },
-  '& *[style*="color: #ee5a6f"]': {
-    color: '#ee5a6f !important'
-  },
-  '&:hover': {
-    transform: $isdisabled ? 'none' : 'translateY(-4px) scale(1.02)',
-    boxShadow: $isactive ? '0 12px 40px rgba(102, 126, 234, 0.6)' : '0 8px 24px rgba(0, 0, 0, 0.3)'
-  },
-  '&:disabled': {
-    opacity: 0.5,
-    cursor: 'not-allowed',
-    '& *': {
-      color: '#fff'
-    }
-  }
-}))
-
-const SkillBadge = styled(Box)(({ theme, active }) => ({
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: theme.spacing(1),
-  padding: '0.5rem 1rem 0.5rem 0.5rem',
-  borderRadius: '20px',
-  background: active ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'rgba(0, 0, 0, 0.05)',
-  color: active ? '#fff' : theme.palette.text.secondary,
-  fontWeight: 600,
-  fontSize: '0.875rem',
-  boxShadow: active ? '0 4px 12px rgba(102, 126, 234, 0.3)' : 'none',
-  ...(active && {
-    '& *': {
-      color: '#fff'
-    }
-  })
 }))
 
 // Helper function to compress/resize images before creating data URL
@@ -524,75 +403,6 @@ function sumOfBid(data) {
   return sum
 }
 
-function SoldLottieFullScreen({ onComplete }) {
-  const [animationData, setAnimationData] = useState(null)
-  const [celebrationData, setCelebrationData] = useState(null)
-  const soldLottieRef = useRef(null)
-  const celebrationRef = useRef(null)
-
-  useEffect(() => {
-    fetch('/sold.json')
-      .then(r => r.json())
-      .then(setAnimationData)
-    fetch('/celebration.json')
-      .then(r => r.json())
-      .then(setCelebrationData)
-  }, [])
-
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (onComplete) onComplete()
-    }, 3000)
-
-    return () => clearTimeout(t)
-  }, [onComplete])
-
-  return (
-    <Box>
-      <Box
-        sx={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        {celebrationData && (
-          <Lottie
-            lottieRef={celebrationRef}
-            animationData={celebrationData}
-            loop={false}
-            onDataReady={() => celebrationRef.current?.setSpeed(0.1)}
-          />
-        )}
-      </Box>
-      <Box
-        sx={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <Box sx={{ transform: 'translate3d(50px, -100px, 0px)' }}>
-          {animationData && (
-            <Lottie
-              lottieRef={soldLottieRef}
-              animationData={animationData}
-              loop={false}
-              onDataReady={() => soldLottieRef.current?.setSpeed(0.1)}
-            />
-          )}
-        </Box>
-      </Box>
-    </Box>
-  )
-}
-
 let socket
 
 function useKeyboardBidEffect({
@@ -711,7 +521,6 @@ const Dashboard = () => {
   const [showSellSuccess, setShowSellSuccess] = useState(false)
   const [soldPlayerInfo, setSoldPlayerInfo] = useState(null)
   const [playerNumberInput, setPlayerNumberInput] = useState('')
-  const [auctionDialogOpen, setAuctionDialogOpen] = useState(false)
   const [selectedPlayerIsSold, setSelectedPlayerIsSold] = useState(false)
 
   // Team management states
@@ -935,6 +744,8 @@ const Dashboard = () => {
     setCurrentype(newValue)
   }
 
+  const router = useRouter()
+
   const bidStartHandler = async () => {
     const { isConfirmed } = await Swal.fire({
       title: 'Open auction?',
@@ -946,84 +757,37 @@ const Dashboard = () => {
     })
 
     if (isConfirmed) {
-      setAuctionDialogOpen(true)
-      setCurrentPlayerBid(null)
-      setSelectedPlayerIsSold(false)
-      setPlayerNumberInput('')
+      router.push('/auction')
     }
   }
 
   const bidResumeHandler = () => {
-    socket.emit('resumeBid', {})
+    if (socket) socket.emit('resumeBid', {})
+    router.push('/auction')
   }
 
   const downloadRemainingPlayersPdf = async () => {
-    const remaining = [...(playersData || [])]
-      .filter(p => !p.team)
-      .sort((a, b) => (a.playerNumber || 0) - (b.playerNumber || 0))
+    const remaining = [...(playersData || [])].filter(p => !p.team)
     if (!remaining.length) {
       Swal.fire('Info', 'No remaining players to list.', 'info')
 
       return
     }
-
-    const getImageDataUrl = async url => {
-      try {
-        const res = await fetch(url, { mode: 'cors' })
-        const blob = await res.blob()
-
-        return await new Promise((resolve, reject) => {
-          const r = new FileReader()
-          r.onload = () => resolve(r.result)
-          r.onerror = reject
-          r.readAsDataURL(blob)
-        })
-      } catch {
-        return null
-      }
+    try {
+      const res = await axios.get(`${process.env.API_BASE_URL}/api/v1/pdf/remaining-players`, {
+        responseType: 'blob'
+      })
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', 'remaining-players.pdf')
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (e) {
+      Swal.fire('Error', e.response?.data?.message || 'Failed to download PDF', 'error')
     }
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-    const pageW = doc.internal.pageSize.getWidth()
-    const pageH = doc.internal.pageSize.getHeight()
-    const margin = 10
-    const cardW = (pageW - margin * 3) / 2
-    const cardH = 42
-    const pad = 4
-    const imgW = 18
-    const imgH = 18
-    const textX = pad + imgW + 2
-    const lineH = 5
-    const cardsPerPage = 2 * Math.floor((pageH - margin * 2) / (cardH + margin))
-    doc.setFontSize(10)
-    const baseUrl = process.env.API_BASE_URL || ''
-    for (let idx = 0; idx < remaining.length; idx++) {
-      const player = remaining[idx]
-      if (idx > 0 && idx % cardsPerPage === 0) doc.addPage()
-      const cardOnPage = idx % cardsPerPage
-      const col = cardOnPage % 2
-      const row = Math.floor(cardOnPage / 2)
-      const x = margin + col * (cardW + margin)
-      const y = margin + row * (cardH + margin)
-      doc.setDrawColor(200, 200, 200)
-      doc.rect(x, y, cardW, cardH)
-      if (player.photo && baseUrl) {
-        const dataUrl = await getImageDataUrl(`${baseUrl}/player/${player.photo}`)
-        if (dataUrl) {
-          const format = dataUrl.indexOf('image/png') !== -1 ? 'PNG' : 'JPEG'
-          doc.addImage(dataUrl, format, x + pad, y + pad, imgW, imgH)
-        }
-      }
-      doc.setFontSize(16)
-      doc.setFont('helvetica', 'bold')
-      doc.text(`No: ${player.playerNumber ?? '-'}`, x + textX, y + pad + lineH)
-      doc.setFontSize(10)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Name: ${player.name || '-'}`, x + textX, y + pad + lineH * 2)
-      doc.text(`Batsman: ${player.batstyle ? 'Yes' : 'No'}`, x + textX, y + pad + lineH * 3)
-      doc.text(`Bowler: ${player.bowlstyle ? 'Yes' : 'No'}`, x + textX, y + pad + lineH * 4)
-      doc.text(`Wicket Keeper: ${player.wicketkeeper ? 'Yes' : 'No'}`, x + textX, y + pad + lineH * 5)
-    }
-    doc.save('remaining-players.pdf')
   }
 
   const downloadAllTeamsPdf = () => {
@@ -1033,78 +797,19 @@ const Dashboard = () => {
 
       return
     }
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-    const pageW = doc.internal.pageSize.getWidth()
-    const pageH = doc.internal.pageSize.getHeight()
-    const margin = 10
-    const colW = [12, 42, 28, 18, 18, 22, 22, 18]
-    const rowH = 7
-    const headerH = 8
-
-    const getTeamPlayers = team =>
-      (playersData || []).filter(
-        p => p.team && (p.team._id === team._id || p.team === team._id)
-      )
-    let y = margin
-    doc.setFontSize(10)
-    teams.forEach((team, teamIdx) => {
-      const typeOrder = ['Captain', 'IconPlayer', 'Player', 'Unsold']
-
-      const teamPlayers = getTeamPlayers(team).sort((a, b) => {
-        const ai = typeOrder.indexOf(a.type || 'Player')
-        const bi = typeOrder.indexOf(b.type || 'Player')
-        if (ai !== bi) return ai - bi
-
-        return (a.playerNumber || 0) - (b.playerNumber || 0)
+    axios
+      .get(`${process.env.API_BASE_URL}/api/v1/pdf/team-wise`, { responseType: 'blob' })
+      .then(res => {
+        const url = window.URL.createObjectURL(new Blob([res.data]))
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', 'all-teams-players.pdf')
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.URL.revokeObjectURL(url)
       })
-      if (y > margin && y + headerH + rowH * (teamPlayers.length + 1) > pageH - margin) {
-        doc.addPage()
-        y = margin
-      }
-      doc.setFontSize(12)
-      doc.setFont('helvetica', 'bold')
-      doc.text(team.name || `Team ${teamIdx + 1}`, margin, y)
-      y += headerH
-      doc.setFontSize(9)
-      doc.setFont('helvetica', 'normal')
-      const headers = ['No', 'Name', 'Mobile', 'Batsman', 'Bowler', 'Wicket Keeper', 'Type', 'Price']
-      let x = margin
-      doc.setDrawColor(0, 0, 0)
-      doc.setLineWidth(0.2)
-      headers.forEach((h, i) => {
-        doc.setFont('helvetica', 'bold')
-        doc.rect(x, y - 5, colW[i], rowH)
-        doc.text(h, x + 2, y)
-        x += colW[i]
-      })
-      y += rowH
-      teamPlayers.forEach((player, playerIdx) => {
-        if (y + rowH > pageH - margin) {
-          doc.addPage()
-          y = margin
-        }
-        x = margin
-
-        const cells = [
-          String(playerIdx + 1),
-          (player.name || '-').substring(0, 20),
-          (player.mobile || '-').substring(0, 12),
-          player.batstyle ? 'Yes' : 'No',
-          player.bowlstyle ? 'Yes' : 'No',
-          player.wicketkeeper ? 'Yes' : 'No',
-          player.type || 'Player',
-          player.finalprice != null ? String(player.finalprice) : '-'
-        ]
-        cells.forEach((cell, i) => {
-          doc.rect(x, y - 5, colW[i], rowH)
-          doc.text(cell, x + 2, y)
-          x += colW[i]
-        })
-        y += rowH
-      })
-      y += rowH
-    })
-    doc.save('all-teams-players.pdf')
+      .catch(e => Swal.fire('Error', e.response?.data?.message || 'Failed to download PDF', 'error'))
   }
 
   const resetPlayerAndAmountHandler = async () => {
@@ -1550,6 +1255,26 @@ const Dashboard = () => {
               <Typography component='span' variant='body2' sx={{ color: 'inherit' }}>
                 Reg end: {formatDate(auctionSettingData?.registrationEndDate)}
               </Typography>
+              <Link href='/auction' passHref>
+                <Button
+                  component='a'
+                  variant='contained'
+                  size='small'
+                  sx={{
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    background: 'linear-gradient(135deg, #56CA00 0%, #6AD01F 100%)',
+                    color: '#fff',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #6AD01F 0%, #56CA00 100%)',
+                      color: '#fff'
+                    }
+                  }}
+                >
+                  Auction
+                </Button>
+              </Link>
               <Link href='/registration' passHref>
                 <Button
                   component='a'
@@ -1682,34 +1407,6 @@ const Dashboard = () => {
             <Box>
               {unsoldPlayers ? (
                 <>
-                  <StyledButton
-                    sx={{
-                      mr: 2,
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      color: '#ffffff',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)'
-                      }
-                    }}
-                    variant='contained'
-                    onClick={bidStartHandler}
-                  >
-                    Start Auction
-                  </StyledButton>
-                  <StyledButton
-                    sx={{
-                      mr: 2,
-                      background: 'linear-gradient(135deg, #9C9FA4 0%, #8A8D93 100%)',
-                      color: '#ffffff',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #8A8D93 0%, #9C9FA4 100%)'
-                      }
-                    }}
-                    variant='contained'
-                    onClick={bidResumeHandler}
-                  >
-                    Resume
-                  </StyledButton>
                   <StyledButton
                     sx={{
                       mr: 2,
@@ -1849,857 +1546,6 @@ const Dashboard = () => {
           </>
         )}
       </Grid>
-      {/* <SoldLottieFullScreen onComplete={handleNextPlayer} /> */}
-      <AuctionDialog
-        fullScreen
-        open={auctionDialogOpen}
-        TransitionComponent={Transition}
-        PaperProps={{
-          sx: {
-            background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-            minHeight: '100vh'
-          }
-        }}
-      >
-        <AuctionHeader>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              mb: 2,
-              width: '100%',
-              gap: 1
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-              <IconButton
-                onClick={() => {
-                  setAuctionDialogOpen(false)
-                  setCurrentPlayerBid(null)
-                  setSelectedPlayerIsSold(false)
-                  setPlayerNumberInput('')
-                }}
-                sx={{
-                  color: '#fff',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    transform: 'rotate(90deg)'
-                  },
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                <CloseIcon />
-              </IconButton>
-              {isValidAdmin &&
-                (() => {
-                  const maxPlayerNum = playersData.length
-                    ? Math.max(1, ...playersData.map(p => p.playerNumber).filter(n => n != null && n !== '')) ||
-                    playersData.length
-                    : 1
-
-                  const submitPlayerNumber = () => {
-                    if (currentPlayerBid && bidProgress.length > 0) return
-                    const num = parseInt(playerNumberInput, 10)
-                    if (isNaN(num) || num < 1) {
-                      if (playerNumberInput.trim() !== '') {
-                        setPlayerNumberInput('')
-                      }
-
-                      return
-                    }
-
-                    const clamped = Math.min(maxPlayerNum, Math.max(1, num))
-
-                    const found = playersData.find(p => p.playerNumber != null && Number(p.playerNumber) === clamped)
-                    if (!found) {
-                      setPlayerNumberInput('')
-
-                      return
-                    }
-                    if (found.team) {
-                      setCurrentPlayerBid(found)
-                      setSelectedPlayerIsSold(true)
-                      setBidProgress([])
-                      setPlayerNumberInput('')
-                    } else if (found.type === 'Unsold') {
-                      setCurrentPlayerBid(found)
-                      setBidProgress([])
-                      setPlayerNumberInput('')
-                    } else {
-                      if (socket) {
-                        socket.emit('selectPlayerByNumber', { playerNumber: clamped })
-                        setPlayerNumberInput('')
-                      }
-                    }
-                  }
-
-                  return (
-                    <TextField
-                      size='small'
-                      type='text'
-                      inputMode='numeric'
-                      placeholder='Player No.'
-                      disabled={!!(currentPlayerBid && bidProgress.length > 0)}
-                      value={playerNumberInput}
-                      onChange={e => {
-                        const raw = e.target.value.replace(/\D/g, '')
-                        if (raw === '') {
-                          setPlayerNumberInput('')
-
-                          return
-                        }
-                        const num = parseInt(raw, 10)
-                        if (!isNaN(num)) {
-                          const clamped = Math.min(maxPlayerNum, Math.max(1, num))
-                          setPlayerNumberInput(String(clamped))
-                        }
-                      }}
-                      onBlur={submitPlayerNumber}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') {
-                          submitPlayerNumber()
-                        }
-                      }}
-                      inputProps={{ style: { color: '#fff', width: 100 } }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          color: '#fff',
-                          borderRadius: '12px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.4)' },
-                          '&:hover fieldset': { borderColor: 'rgba(255, 255, 255, 0.6)' }
-                        },
-                        '& .MuiInputLabel-root': { color: 'rgba(255,255,255,0.8)' }
-                      }}
-                    />
-                  )
-                })()}
-            </Box>
-            <Box sx={{ flex: 1, textAlign: 'center', minWidth: 0 }}>
-              {currentPlayerBid ? (
-                <>
-                  <Typography
-                    variant='h3'
-                    sx={{
-                      fontFamily: 'Russo One',
-                      fontWeight: 400,
-                      fontSize: { xs: '28px', md: '42px' },
-                      color: '#fff',
-                      textShadow: '2px 4px 8px rgba(0, 0, 0, 0.3)',
-                      mb: 1
-                    }}
-                  >
-                    {currentPlayerBid?.playerNumber != null && currentPlayerBid?.playerNumber !== ''
-                      ? `${currentPlayerBid.playerNumber} - ${currentPlayerBid?.name}`
-                      : currentPlayerBid?.name}
-                  </Typography>
-
-                  {currentPlayerBid?.type !== 'Unsold' && (
-                  <BidDisplay sx={{ maxWidth: '600px', mx: 'auto', mt: 2 }}>
-                    <Box
-                      sx={{
-                        position: 'relative',
-                        zIndex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 2
-                      }}
-                    >
-                      {/* Left side: Decrease button or Mark as Unsold */}
-                      {isValidAdmin && !selectedPlayerIsSold && (
-                        <>
-                          {bidProgress.length > 0 ? (
-                            <IconButton
-                              onClick={() => undoBid()}
-                              sx={{
-                                borderRadius: '12px',
-                                width: 56,
-                                height: 56,
-                                background: 'rgba(255, 255, 255, 0.2)',
-                                backdropFilter: 'blur(10px)',
-                                border: '1px solid rgba(255, 255, 255, 0.3)',
-                                color: '#ffffff',
-                                '&:hover': {
-                                  background: 'rgba(255, 255, 255, 0.3)',
-                                  transform: 'translateY(-2px)'
-                                }
-                              }}
-                            >
-                              <RemoveIcon />
-                            </IconButton>
-                          ) : (
-                            <IconButton
-                              onClick={() => setunSoldDialog(true)}
-                              sx={{
-                                borderRadius: '12px',
-                                width: 56,
-                                height: 56,
-                                background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%)',
-                                color: '#ffffff',
-                                boxShadow: '0 4px 16px rgba(238, 90, 111, 0.4)',
-                                '&:hover': {
-                                  background: 'linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%)',
-                                  transform: 'translateY(-2px)'
-                                }
-                              }}
-                            >
-                              <CancelIcon />
-                            </IconButton>
-                          )}
-                        </>
-                      )}
-
-                      {/* Center: Bid Amount */}
-                      <Typography
-                        variant='h2'
-                        sx={{
-                          fontFamily: 'Russo One',
-                          fontSize: { xs: '36px', md: '56px' },
-                          color: '#ffffff',
-                          fontWeight: 700,
-                          textShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                          flex: 1,
-                          textAlign: 'center'
-                        }}
-                      >
-                        {sumOfBid(bidProgress)} Lakh
-                      </Typography>
-
-                      {/* Right side: Sold button */}
-                      {isValidAdmin && (
-                        <Button
-                          onClick={() => {
-                            if (currentBidTeam) {
-                              setSelectedTeamForSell(currentBidTeam)
-                              setSellDialog(true)
-                            }
-                          }}
-                          disabled={selectedPlayerIsSold || !bidProgress.length || !currentBidTeam}
-                          sx={{
-                            borderRadius: '12px',
-                            minWidth: 56,
-                            height: 56,
-                            px: 2,
-                            background: 'linear-gradient(135deg, #56CA00 0%, #6AD01F 100%)',
-                            color: '#ffffff',
-                            fontWeight: 700,
-                            textTransform: 'none',
-                            boxShadow: '0 4px 16px rgba(86, 202, 0, 0.4)',
-                            '&:hover': {
-                              background: 'linear-gradient(135deg, #6AD01F 0%, #56CA00 100%)',
-                              transform: 'translateY(-2px)'
-                            },
-                            '&:disabled': {
-                              opacity: 0.5,
-                              cursor: 'not-allowed'
-                            }
-                          }}
-                        >
-                          Sold
-                        </Button>
-                      )}
-                      {isValidAdmin && (selectedPlayerIsSold || currentPlayerBid?.team) && (
-                        <Button
-                          variant='contained'
-                          onClick={() => {
-                            if (socket && currentPlayerBid?._id) {
-                              socket.emit('resetSinglePlayer', { playerId: currentPlayerBid._id })
-                              setSelectedPlayerIsSold(false)
-                            }
-                          }}
-                          sx={{
-                            borderRadius: '12px',
-                            minWidth: 56,
-                            height: 56,
-                            px: 2,
-                            ml: 1,
-                            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                            color: '#ffffff',
-                            fontWeight: 700,
-                            textTransform: 'none',
-                            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
-                            '&:hover': {
-                              background: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)',
-                              transform: 'translateY(-2px)'
-                            }
-                          }}
-                        >
-                          Reset player
-                        </Button>
-                      )}
-                    </Box>
-                  </BidDisplay>
-                  )}
-                </>
-              ) : (
-                <Typography sx={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem' }}>
-                  Enter player number or click Random to start
-                </Typography>
-              )}
-            </Box>
-            {isValidAdmin && (
-              <Button
-                variant='contained'
-                disabled={!!(currentPlayerBid && bidProgress.length > 0)}
-                onClick={() => {
-                  if (socket) {
-                    socket.emit('newBid', {})
-                    setPlayerNumberInput('')
-                  }
-                }}
-                sx={{
-                  borderRadius: '12px',
-                  px: 2,
-                  py: 1.25,
-                  fontWeight: 700,
-                  textTransform: 'none',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: '#fff',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.4)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
-                    transform: 'translateY(-2px)'
-                  }
-                }}
-              >
-                Random
-              </Button>
-            )}
-          </Box>
-        </AuctionHeader>
-
-        <Box
-          sx={{
-            p: { xs: 2, md: 3 },
-            background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-            minHeight: 'calc(100vh - 180px)',
-            height: '100%',
-            overflow: 'auto'
-          }}
-        >
-          <Grid container spacing={3} justifyContent='center' sx={{ height: '100%' }}>
-            {currentPlayerBid && (
-              <Grid item xs={12} md={4} lg={4}>
-                <PlayerCard>
-                  <Box sx={{ position: 'relative', overflow: 'hidden' }}>
-                    {currentPlayerBid?.photo ? (
-                      <CardMedia
-                        component='img'
-                        image={`${process.env.API_BASE_URL}/player/${currentPlayerBid.photo}`}
-                        alt={currentPlayerBid?.name}
-                        sx={{
-                          width: '100%',
-                          height: 'auto',
-                          objectFit: 'cover'
-                        }}
-                      />
-                    ) : (
-                      <Box
-                        sx={{
-                          width: '100%',
-                          height: '400px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          color: '#fff',
-                          '& *': {
-                            color: '#fff'
-                          }
-                        }}
-                      >
-                        <Typography variant='h2' sx={{ fontWeight: 700 }}>
-                          {currentPlayerBid?.name?.charAt(0) || '?'}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-
-                  <CardContent sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <Box
-                      sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}
-                    >
-                      {currentPlayerBid?.batstyle && (
-                        <Box>
-                          <SkillBadge active={currentPlayerBid?.batstyle}>
-                            <Box component='span'>🏏</Box>
-                            <Typography variant='body2' sx={{ fontWeight: 600, color: '#fff' }}>
-                              {currentPlayerBid?.batstyle ? 'BATSMAN' : 'No'}
-                            </Typography>
-                          </SkillBadge>
-                        </Box>
-                      )}
-                      {currentPlayerBid?.bowlstyle && (
-                        <Box>
-                          <SkillBadge active={currentPlayerBid?.bowlstyle}>
-                            <Box component='span'>⚾</Box>
-                            <Typography variant='body2' sx={{ fontWeight: 600, color: '#fff' }}>
-                              {currentPlayerBid?.bowlstyle ? 'BOWLER' : 'No'}
-                            </Typography>
-                          </SkillBadge>
-                        </Box>
-                      )}
-                      {currentPlayerBid?.wicketkeeper && (
-                        <Box>
-                          <SkillBadge active={currentPlayerBid?.wicketkeeper}>
-                            <Box component='span'>🧤</Box>
-                            <Typography variant='body2' sx={{ fontWeight: 600, color: '#fff' }}>
-                              {currentPlayerBid?.wicketkeeper ? 'WICKET KEEPER' : 'No'}
-                            </Typography>
-                          </SkillBadge>
-                        </Box>
-                      )}
-                    </Box>
-                  </CardContent>
-                </PlayerCard>
-              </Grid>
-            )}
-
-            {/* Bidding Section - teams info always visible, centered when no player */}
-            {isValidAdmin && (
-              <Grid
-                item
-                xs={12}
-                md={currentPlayerBid ? 8 : 12}
-                sx={!currentPlayerBid ? { display: 'flex', justifyContent: 'center', alignItems: 'flex-start' } : {}}
-              >
-                {/* Team Selection for Selling */}
-                <Box
-                  sx={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                    ...(!currentPlayerBid && { maxWidth: 900, width: '100%', mx: 'auto' })
-                  }}
-                >
-                  {currentPlayerBid?.type === 'Unsold' ? (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        minHeight: 300,
-                        width: '100%',
-                        p: 2
-                      }}
-                    >
-                      <Box
-                        component='img'
-                        src='/unsold.png'
-                        alt='Unsold'
-                        sx={{ maxWidth: '100%', maxHeight: 400, objectFit: 'contain' }}
-                      />
-                    </Box>
-                  ) : (
-                  <Grid container spacing={2} sx={{ p: 1 }} justifyContent='center' alignItems='center'>
-                    {allTeams.map((el, inx) => {
-                      const teamCount = allTeams.length
-                      const gridSize = teamCount <= 4 ? 3 : teamCount <= 6 ? 4 : 3
-                      let teamPlayers = noOfTeamPlayer(playersData, el)
-                      let reservePlayers = teamPlayers?.captain + teamPlayers?.iconPlayer
-                      const currentBidAmount = sumOfBid(bidProgress)
-                      const startBid = auctionSettingData?.startBid || 1
-
-                      // Calculate reserve players needed
-                      const reservePlayersNeeded =
-                        (auctionSettingData?.maxPlayersPerteam || 11) -
-                        (auctionSettingData?.reservePlayersPerTeam || 0) -
-                        (teamPlayers?.players || 0)
-
-                      // Reserve balance = reserve players needed * startBid
-                      const reserveBalance = reservePlayersNeeded * startBid
-
-                      // Available balance = total purse (100) - reserve balance - sum of finalprice of teamPlayers
-                      const availableBalance = 100 - reserveBalance - (teamPlayers?.totalSpend || 0)
-
-                      const maxPlayers = auctionSettingData?.maxPlayersPerteam || 11
-                      const teamFull = (teamPlayers?.total ?? 0) >= maxPlayers
-
-                      const maxBidAmount = teamFull
-                        ? 0
-                        : (availableBalance > 0 ? availableBalance + startBid : 0)
-
-                      const isDisabled =
-                        !currentPlayerBid ||
-                        currentPlayerBid?.type === 'Unsold' ||
-                        selectedPlayerIsSold ||
-                        teamFull ||
-                        availableBalance <= 0 ||
-                        (availableBalance <= 0 && Number(currentBidAmount) > Number(startBid)) ||
-                        (availableBalance > 0 && Number(currentBidAmount) > Number(maxBidAmount)) ||
-                        (Number(currentBidAmount) >= Number(maxBidAmount) && currentBidTeam?._id !== el._id)
-
-                      return (
-                        <Grid item xs={12 / Math.min(teamCount, 4)} sm={gridSize} md={gridSize} lg={gridSize} key={inx}>
-                          <TeamButton
-                            $isactive={currentBidTeam?._id === el._id}
-                            $isdisabled={isDisabled}
-                            onClick={() => {
-                              if (currentBidTeam?._id === el._id) return
-                              if (isDisabled) return
-                              raiseBid(el)
-                            }}
-                            fullWidth
-                          >
-                            <Box
-                              sx={{
-                                position: 'relative',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: 1,
-                                width: '100%'
-                              }}
-                            >
-                              {selectedPlayerIsSold &&
-                                currentPlayerBid?.team &&
-                                (el._id === currentPlayerBid.team._id || el._id === currentPlayerBid.team) && (
-                                  <Box
-                                    sx={{
-                                      position: 'absolute',
-                                      inset: 0,
-                                      zIndex: 2,
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      pointerEvents: 'none',
-                                      overflow: 'hidden'
-                                    }}
-                                  >
-                                    <Box
-                                      component='img'
-                                      src='/sold.png'
-                                      alt='Sold'
-                                      sx={{
-                                        maxWidth: '90%',
-                                        maxHeight: '90%',
-                                        width: 'auto',
-                                        height: 'auto',
-                                        objectFit: 'contain',
-                                        opacity: 0.6
-                                      }}
-                                    />
-                                  </Box>
-                                )}
-                              <Box
-                                sx={{
-                                  position: 'absolute',
-                                  top: 0,
-                                  left: 0,
-                                  minWidth: 28,
-                                  height: 28,
-                                  borderRadius: '50%',
-                                  background: '#0000002e',
-                                  color: '#fff',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontWeight: 700,
-                                  fontSize: '0.875rem'
-                                }}
-                              >
-                                {inx + 1}
-                              </Box>
-                              {el?.logo && (
-                                <Avatar
-                                  src={`${process.env.API_BASE_URL}/team/${el.logo}`}
-                                  alt={el.name}
-                                  sx={{
-                                    width: 60,
-                                    height: 60,
-                                    border: '3px solid rgba(255,255,255,0.3)',
-                                    mb: 1
-                                  }}
-                                />
-                              )}
-                              <Typography
-                                variant='h6'
-                                sx={{
-                                  fontWeight: 700,
-                                  fontSize: { xs: '16px', md: '26px' },
-                                  mb: 1,
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: '2',
-                                  WebkitBoxOrient: 'vertical',
-                                  overflow: 'hidden',
-                                  lineHeight: '1.5em',
-                                  minHeight: '3em'
-                                }}
-                              >
-                                {el?.name}
-                              </Typography>
-                              <Typography variant='body2' sx={{ opacity: 0.9, fontSize: '0.85rem', mb: 1 }}>
-                                {reservePlayers + (teamPlayers?.players || 0)} /{' '}
-                                {auctionSettingData?.maxPlayersPerteam || 11} Players
-                              </Typography>
-                              <Box
-                                sx={{
-                                  borderRadius: '10px',
-                                  background: 'rgba(255,255,255,0.1)',
-                                  backdropFilter: 'blur(10px)',
-                                  width: '100%'
-                                }}
-                              >
-                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                  <Typography
-                                    variant='body2'
-                                    sx={{
-                                      mb: 0.75,
-                                      opacity: 0.8,
-                                      fontSize: '0.75rem',
-                                      display: 'block',
-                                      fontWeight: 600
-                                    }}
-                                  >
-                                    Total Balance
-                                  </Typography>
-                                  <Typography variant='h6' sx={{ fontWeight: 700, fontSize: '30px', mb: 0.75 }}>
-                                    {availableBalance + reserveBalance} L
-                                  </Typography>
-                                </Box>
-                                <Box
-                                  sx={{
-                                    borderTop: '1px solid rgba(255,255,255,0.2)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between'
-                                  }}
-                                >
-                                  <Typography
-                                    variant='body2'
-                                    sx={{ opacity: 0.8, fontSize: '0.75rem', display: 'block', fontWeight: 600 }}
-                                  >
-                                    Max Bid
-                                  </Typography>
-                                  <Typography variant='h6' sx={{ fontWeight: 700, color: '#ee5a6f' }}>
-                                    {maxBidAmount} L
-                                  </Typography>
-                                </Box>
-                                <Typography
-                                  variant='caption'
-                                  sx={{ opacity: 0.7, fontSize: '0.7rem', mt: 0.75, display: 'block' }}
-                                >
-                                  Reserve: {reserveBalance} L
-                                </Typography>
-                              </Box>
-                            </Box>
-                          </TeamButton>
-                        </Grid>
-                      )
-                    })}
-                  </Grid>
-                  )}
-                </Box>
-              </Grid>
-            )}
-          </Grid>
-        </Box>
-
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            py: 1.5,
-            px: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 3,
-            flexWrap: 'wrap',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 -2px 12px rgba(0,0,0,0.08)',
-            zIndex: 10
-          }}
-        >
-          <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
-            Total: {playersData.length}
-          </Typography>
-          <Typography sx={{ fontWeight: 700, color: 'text.primary' }}>
-            Remaining: {playersData.filter(p => !p.team).length}
-          </Typography>
-          <Typography sx={{ fontWeight: 700, color: 'primary.main' }}>
-            Sold: {playersData.filter(p => !!p.team).length}
-          </Typography>
-          <Typography sx={{ fontWeight: 700, color: 'text.secondary' }}>
-            Unsold: {playersData.filter(p => p.type === 'Unsold').length}
-          </Typography>
-        </Box>
-      </AuctionDialog>
-
-      <StyledDialog
-        open={unSoldDialog}
-        onClose={() => setunSoldDialog(false)}
-        aria-labelledby='alert-dialog-title'
-        aria-describedby='alert-dialog-description'
-      >
-        <DialogTitle
-          id='alert-dialog-title'
-          sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: '#fff',
-            fontWeight: 600,
-            '& *': {
-              color: '#fff'
-            }
-          }}
-        >
-          Are you want to unsold this player?
-        </DialogTitle>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setunSoldDialog(false)} sx={{ borderRadius: '12px', textTransform: 'none' }}>
-            No
-          </Button>
-          <StyledButton
-            onClick={() => unSoldBid()}
-            autoFocus
-            sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: '#ffffff',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)'
-              }
-            }}
-          >
-            Yes
-          </StyledButton>
-        </DialogActions>
-      </StyledDialog>
-
-      <StyledDialog
-        open={sellDialog}
-        onClose={() => {
-          setSellDialog(false)
-          setSelectedTeamForSell(null)
-        }}
-        aria-labelledby='alert-dialog-title'
-        aria-describedby='alert-dialog-description'
-        maxWidth='sm'
-        fullWidth
-      >
-        <>
-          <DialogTitle
-            id='alert-dialog-title'
-            sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: '#fff',
-              fontWeight: 600,
-              '& *': {
-                color: '#fff'
-              }
-            }}
-          >
-            Sell Player to {selectedTeamForSell?.name}?
-          </DialogTitle>
-          <DialogContent sx={{ p: 3 }}>
-            <Box sx={{ mb: 2, textAlign: 'center' }}>
-              {selectedTeamForSell?.logo && (
-                <Avatar
-                  src={`${process.env.API_BASE_URL}/team/${selectedTeamForSell.logo}`}
-                  alt={selectedTeamForSell.name}
-                  sx={{
-                    width: 100,
-                    height: 100,
-                    mx: 'auto',
-                    mb: 2,
-                    border: '4px solid #667eea',
-                    boxShadow: '0 4px 16px rgba(102, 126, 234, 0.4)'
-                  }}
-                />
-              )}
-              <Typography variant='h6' sx={{ mb: 1, fontWeight: 600 }}>
-                Final Bid Amount: <strong style={{ color: '#667eea' }}>{sumOfBid(bidProgress)} Lakh</strong>
-              </Typography>
-              <Typography variant='body1' sx={{ color: 'text.secondary', mb: 2 }}>
-                Are you sure you want to sell <strong>{currentPlayerBid?.name}</strong> to{' '}
-                <strong>{selectedTeamForSell?.name}</strong> for <strong>{sumOfBid(bidProgress)} Lakh</strong>?
-              </Typography>
-              {selectedTeamForSell &&
-                (() => {
-                  const teamPlayers = noOfTeamPlayer(playersData, selectedTeamForSell)
-                  const startBid = auctionSettingData?.startBid || 1
-
-                  // Calculate reserve players needed
-                  const reservePlayersNeeded =
-                    (auctionSettingData?.maxPlayersPerteam || 11) -
-                    (auctionSettingData?.reservePlayersPerTeam || 0) -
-                    (teamPlayers?.players || 0)
-
-                  // Reserve balance = reserve players needed * startBid
-                  const reserveBalance = reservePlayersNeeded * startBid
-
-                  // Available balance = total purse (100) - reserve balance - sum of finalprice of teamPlayers
-                  const availableBalance = 100 - reserveBalance - (teamPlayers?.totalSpend || 0)
-
-                  const currentBidAmount = sumOfBid(bidProgress)
-                  const balanceAfterPurchase = availableBalance - currentBidAmount
-
-                  return (
-                    <Box
-                      sx={{
-                        p: 2,
-                        borderRadius: '12px',
-                        background: 'rgba(102, 126, 234, 0.1)',
-                        border: '1px solid rgba(102, 126, 234, 0.3)'
-                      }}
-                    >
-                      <Typography variant='body2' sx={{ fontWeight: 600, mb: 1 }}>
-                        Team Details:
-                      </Typography>
-                      <Typography variant='body2'>
-                        Available Balance: <strong>{availableBalance} L</strong>
-                      </Typography>
-                      <Typography variant='body2'>
-                        Reserve Balance: <strong>{reserveBalance} L</strong>
-                      </Typography>
-                      <Typography variant='body2'>
-                        After Purchase: <strong>{balanceAfterPurchase} L</strong>
-                      </Typography>
-                    </Box>
-                  )
-                })()}
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button
-              onClick={() => {
-                setSellDialog(false)
-                setSelectedTeamForSell(null)
-              }}
-              sx={{ borderRadius: '12px', textTransform: 'none' }}
-            >
-              Cancel
-            </Button>
-            <StyledButton
-              onClick={() => sellBid(selectedTeamForSell)}
-              autoFocus
-              disabled={!selectedTeamForSell}
-              sx={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: '#ffffff',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)'
-                },
-                '&:disabled': {
-                  opacity: 0.5,
-                  color: '#ffffff'
-                }
-              }}
-            >
-              Confirm Sell
-            </StyledButton>
-          </DialogActions>
-        </>
-      </StyledDialog>
-
-      {showSellSuccess && <SoldLottieFullScreen onComplete={handleNextPlayer} />}
 
       {/* Team Management Dialog */}
       <StyledDialog

@@ -2,7 +2,7 @@ const themeConfig = {
   // ** Layout Configs
   templateName: 'Auction App' /* App Name */,
   mode: 'light' /* light | dark */,
-  contentWidth: 'boxed' /* full | boxed */,
+  contentWidth: 'full' /* full | boxed */,
   // ** Routing Configs
   routingLoader: true /* true | false */,
   // ** Navigation (Menu) Configs

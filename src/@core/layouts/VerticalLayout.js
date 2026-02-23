@@ -1,16 +1,9 @@
-// ** React Imports
-// import { useState } from 'react' // Removed - no longer needed
+import { useRouter } from 'next/router'
 
-// ** MUI Imports
 import { styled } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 
-// ** Theme Config Import
-import themeConfig from 'src/configs/themeConfig'
-
-// ** Components
 import AppBar from './components/vertical/appBar'
-// import Navigation from './components/vertical/navigation' // Removed - sidebar no longer used
 import Footer from './components/shared-components/footer'
 
 const VerticalLayoutWrapper = styled('div')({
@@ -38,29 +31,21 @@ const ContentWrapper = styled('main')(({ theme }) => ({
 }))
 
 const VerticalLayout = props => {
-  // ** Props
+  const router = useRouter()
   const { settings, children } = props
-
-  // ** Vars
   const { contentWidth } = settings
-  // const navWidth = themeConfig.navigationSize // Removed - no longer needed
-
-  // ** States
-  // const [navVisible, setNavVisible] = useState(false) // Removed - no longer needed
-
-  // ** Toggle Functions
-  // const toggleNavVisibility = () => setNavVisible(!navVisible) // Removed - no longer needed
+  const isAuctionPage = router.pathname === '/auction'
 
   return (
     <>
       <VerticalLayoutWrapper className='layout-wrapper'>
-        {/* Navigation sidebar removed - navigation items now in header */}
         <MainContentWrapper className='layout-content-wrapper'>
-          <AppBar {...props} />
+          {!isAuctionPage && <AppBar {...props} />}
 
           <ContentWrapper
             className='layout-page-content'
             sx={{
+              ...(isAuctionPage && { padding: 0 }),
               ...(contentWidth === 'boxed' && {
                 mx: 'auto',
                 '@media (min-width:1440px)': { maxWidth: 1440 },
